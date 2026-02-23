@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}SecureChain | AI + Blockchain Digital Security{% endblock %}
+{% block content %}
+<section class="relative overflow-hidden rounded-3xl border border-cyan-400/20 bg-slate-900/60 p-8 shadow-glow backdrop-blur-2xl">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(138,99,255,0.25),transparent_50%),radial-gradient(circle_at_bottom_left,rgba(0,229,255,0.2),transparent_50%)]"></div>
+    <div class="relative z-10 grid gap-8 lg:grid-cols-2">
+        <div class="space-y-6">
+            <span class="inline-flex rounded-full border border-cyan-400/30 px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] text-cyan-200">Enterprise Cyber Trust Platform</span>
+            <h1 class="text-4xl font-bold leading-tight md:text-5xl">
+                Verify, protect, and prove digital truth with
+                <span class="bg-gradient-to-r from-cyan-300 via-cyan-100 to-violet-300 bg-clip-text text-transparent">AI + Blockchain</span>
+            </h1>
+            <p class="max-w-xl text-sm text-slate-200 md:text-base">
+                SecureChain detects fraud, certifies document integrity, and gives organizations a tamper-proof verification workflow for daily operations.
+            </p>
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ url_for('auth.signup') }}" class="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:translate-y-[-1px] hover:bg-cyan-300">
+                    Launch Free Workspace
+                </a>
+                <a href="{{ url_for('main.public_upload') }}" class="rounded-xl border border-cyan-400/40 px-5 py-3 text-sm font-semibold text-cyan-200 transition hover:bg-cyan-500/20">
+                    Public Upload
+                </a>
+                <a href="{{ url_for('main.public_verify') }}" class="rounded-xl border border-violet-400/40 px-5 py-3 text-sm font-semibold text-violet-200 transition hover:bg-violet-500/20">
+                    Verify a Document
+                </a>
+            </div>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <article class="glass-card">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Live Blockchain</p>
+                <p class="mt-2 text-2xl font-bold text-cyan-200">{{ health.total_blocks }}</p>
+                <p class="mt-1 text-xs text-slate-400">{{ "Healthy" if health.is_valid else "Integrity Alert" }}</p>
+            </article>
+            <article class="glass-card">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Verified Files</p>
+                <p class="mt-2 text-2xl font-bold text-violet-200">{{ verified_count }}</p>
+                <p class="mt-1 text-xs text-slate-400">Across all organizations</p>
+            </article>
+            <article class="glass-card sm:col-span-2">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Protection Score</p>
+                <div class="mt-2 flex items-center gap-3">
+                    <div class="h-2 flex-1 rounded-full bg-slate-700">
+                        <div class="h-2 rounded-full bg-gradient-to-r from-cyan-300 to-violet-300" style="width: {{ protection_score }}%"></div>
+                    </div>
+                    <span class="font-mono text-sm text-cyan-200">{{ protection_score }}%</span>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="mt-8 grid gap-4 md:grid-cols-3">
+    <div class="glass-card" title="AI scans document behavior and risk patterns automatically.">
+        <h3 class="font-semibold text-cyan-200">Fake Document Detection</h3>
+        <p class="mt-2 text-sm text-slate-300">Smart risk scoring highlights suspicious uploads and triggers review workflows before approval.</p>
+    </div>
+    <div class="glass-card" title="Every record is linked in a hash chain for tamper-proof validation.">
+        <h3 class="font-semibold text-cyan-200">Tamper-Proof Certification</h3>
+        <p class="mt-2 text-sm text-slate-300">Each upload creates a blockchain block with immutable linkage and transparent verification history.</p>
+    </div>
+    <div class="glass-card" title="Public users can verify authenticity with QR or verification ID.">
+        <h3 class="font-semibold text-cyan-200">Public Authenticity Checks</h3>
+        <p class="mt-2 text-sm text-slate-300">Anyone can confirm ownership and integrity without account access, ideal for legal and public use cases.</p>
+    </div>
+</section>
+
+<section class="mt-8 rounded-2xl border border-slate-700/40 bg-slate-900/40 p-6">
+    <h2 class="text-xl font-semibold text-cyan-200">Guided Onboarding</h2>
+    <ol class="mt-4 grid gap-3 text-sm text-slate-300 md:grid-cols-4">
+        <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-4">1. Register organization user account.</li>
+        <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-4">2. Upload file for secure hashing + encryption.</li>
+        <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-4">3. AI engine scores risk and authenticity.</li>
+        <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-4">4. Share verification link or QR publicly.</li>
+    </ol>
+</section>
+{% endblock %}

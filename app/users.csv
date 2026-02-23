@@ -1,0 +1,3 @@
+user_id,username,email,password_hash,role,last_login,account_status,email_verified,email_verification_token_hash,email_verification_expires_at,reset_token_hash,reset_token_expires_at,two_factor_enabled,two_factor_secret,delegated_admin_scopes,delegated_admin_until,delegated_admin_by,delegated_admin_note,delegated_admin_updated_at
+admin001,admin,admin@securechain.local,$2b$12$Xcuo4XrZ/xbOTE4VC0OWK.HfA26HWnmdnJB164TT7XBMLtDTjFqfO,admin,,active,1,,,,,0,,,,,,
+user001,user,user@securechain.local,$2b$12$SZFBox8Aj7z.ivXapBk9zesbZX6d6cKhCeUzK9ix7LnkQf9TmH/Gm,user,,active,1,,,,,0,,,,,,

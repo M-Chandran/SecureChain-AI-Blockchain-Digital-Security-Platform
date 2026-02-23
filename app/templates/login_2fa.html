@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}2FA Verification | SecureChain{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-lg rounded-3xl border border-cyan-400/30 bg-slate-900/60 p-8 shadow-glow backdrop-blur-2xl">
+    <h1 class="text-2xl font-bold text-cyan-200">Two-Factor Verification</h1>
+    <p class="mt-2 text-sm text-slate-300">Enter the 6-digit code from your authenticator app to complete login.</p>
+    {% if pending_username %}
+        <p class="mt-1 text-xs text-slate-400">Account: <span class="font-mono text-cyan-200">{{ pending_username }}</span></p>
+    {% endif %}
+    <form method="POST" class="mt-6 space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+            <label class="mb-1 block text-sm">Authenticator Code</label>
+            <input name="otp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456" required class="w-full rounded-xl border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm tracking-[0.3em] outline-none ring-cyan-300 focus:ring">
+        </div>
+        <button class="w-full rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-300">Verify and Login</button>
+    </form>
+    <p class="mt-4 text-xs text-slate-400">If code keeps failing, verify authenticator clock sync and retry login.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Signup | SecureChain{% endblock %}
+{% block content %}
+<section class="easy-auth-scene p-3 md:p-5">
+    <div class="easy-auth-card">
+        <div class="easy-auth-left">
+            <div class="easy-auth-top">
+                <a href="{{ url_for('main.index') }}" class="easy-auth-back" aria-label="Back to home">&#8592;</a>
+                <p class="easy-auth-hint">Already member? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+            </div>
+
+            <h1 class="easy-auth-title">Sign Up</h1>
+            <p class="easy-auth-sub">Create a verified profile with secure access controls.</p>
+
+            <div class="easy-auth-main" data-lane-root>
+                <div class="easy-auth-tabs" role="tablist" aria-label="Signup lane selector">
+                    <button type="button" class="easy-auth-tab is-active" data-lane-btn="user" aria-pressed="true">User Account</button>
+                    <button type="button" class="easy-auth-tab" data-lane-btn="admin" aria-pressed="false">Admin Account</button>
+                </div>
+
+                <form method="POST" class="easy-auth-form" data-lane-panel="user">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="role_portal" value="user">
+
+                    <div class="easy-field">
+                        <span class="easy-field-icon">&#128100;</span>
+                        <input name="username" placeholder="Username" required class="easy-input">
+                    </div>
+
+                    <div class="easy-field">
+                        <span class="easy-field-icon">@</span>
+                        <input type="email" name="email" placeholder="Email" required class="easy-input">
+                    </div>
+
+                    <div class="easy-field">
+                        <span class="easy-field-icon">&#128274;</span>
+                        <input id="user-signup-password" type="password" name="password" autocomplete="new-password" minlength="10" placeholder="Password" required class="easy-input pr-12">
+                        <button
+                            type="button"
+                            data-password-toggle
+                            data-target="user-signup-password"
+                            aria-label="Toggle password visibility"
+                            aria-pressed="false"
+                            class="easy-eye"
+                        >
+                            <span data-toggle-label>Show</span>
+                        </button>
+                    </div>
+
+                    <ul class="easy-rules">
+                        <li>At least 10 characters.</li>
+                        <li>Use one number and one symbol.</li>
+                        <li>Use lowercase and uppercase letters.</li>
+                    </ul>
+
+                    <div class="easy-field">
+                        <span class="easy-field-icon">&#128274;</span>
+                        <input id="user-signup-confirm-password" type="password" name="confirm_password" autocomplete="new-password" minlength="10" placeholder="Re-type password" required class="easy-input pr-12">
+                        <button
+                            type="button"
+                            data-password-toggle
+                            data-target="user-signup-confirm-password"
+                            aria-label="Toggle password visibility"
+                            aria-pressed="false"
+                            class="easy-eye"
+                        >
+                            <span data-toggle-label>Show</span>
+                        </button>
+                    </div>
+
+                    <button class="easy-submit-btn">Create User Account</button>
+                </form>
+
+                <form method="POST" class="easy-auth-form" data-lane-panel="admin" hidden>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="role_portal" value="admin">
+
+                    <div class="easy-field">
+                        <span class="easy-field-icon">&#9881;</span>
+                        <input name="username" placeholder="Admin username" required class="easy-input">
+                    </div>
+
+                    <div class="easy-field">
+                        <span class="easy-field-icon">@</span>
+                        <input type="email" name="email" placeholder="Admin email" required class="easy-input">
+                    </div>
+
+                    <div class="easy-field">
+                        <span class="easy-field-icon">&#128274;</span>
+                        <input id="admin-signup-password" type="password" name="password" autocomplete="new-password" minlength="10" placeholder="Password" required class="easy-input pr-12">
+                        <button
+                            type="button"
+                            data-password-toggle
+                            data-target="admin-signup-password"
+                            aria-label="Toggle password visibility"
+                            aria-pressed="false"
+                            class="easy-eye"
+                        >
+                            <span data-toggle-label>Show</span>
+                        </button>
+                    </div>
+
+                    <div class="easy-field">
+                        <span class="easy-field-icon">&#128274;</span>
+                        <input id="admin-signup-confirm-password" type="password" name="confirm_password" autocomplete="new-password" minlength="10" placeholder="Confirm password" required class="easy-input pr-12">
+                        <button
+                            type="button"
+                            data-password-toggle
+                            data-target="admin-signup-confirm-password"
+                            aria-label="Toggle password visibility"
+                            aria-pressed="false"
+                            class="easy-eye"
+                        >
+                            <span data-toggle-label>Show</span>
+                        </button>
+                    </div>
+
+                    <div class="easy-field">
+                        <span class="easy-field-icon">&#128273;</span>
+                        <input id="admin-signup-access-key" type="password" name="admin_access_key" placeholder="Admin access key" required class="easy-input pr-12">
+                        <button
+                            type="button"
+                            data-password-toggle
+                            data-target="admin-signup-access-key"
+                            aria-label="Toggle password visibility"
+                            aria-pressed="false"
+                            class="easy-eye"
+                        >
+                            <span data-toggle-label>Show</span>
+                        </button>
+                    </div>
+
+                    <p class="easy-admin-tip">Admin key default: <span class="font-mono">SECURECHAIN-ADMIN-KEY</span></p>
+                    <button class="easy-submit-btn easy-submit-btn-admin">Create Admin Account</button>
+                </form>
+            </div>
+
+            <div class="easy-auth-links">
+                <a href="{{ url_for('auth.resend_verification') }}">Resend verification</a>
+                <a href="{{ url_for('auth.reset_password') }}">Reset password</a>
+            </div>
+        </div>
+
+        <aside class="easy-auth-right">
+            <div class="easy-geo easy-geo-top"></div>
+            <div class="easy-geo easy-geo-bottom"></div>
+
+            <div class="easy-float-card easy-float-inbox">
+                <p class="easy-float-label">Inbox</p>
+                <p class="easy-float-value">176,18</p>
+                <div class="easy-mini-wave"><span></span><span></span><span></span></div>
+            </div>
+
+            <div class="easy-float-card easy-float-note">
+                <p class="easy-float-title">Your data, your rules</p>
+                <p class="easy-float-copy">Your account stays protected with verified onboarding and encrypted policy checks.</p>
+            </div>
+
+            <span class="easy-social easy-social-ig">IG</span>
+            <span class="easy-social easy-social-tk">t</span>
+        </aside>
+    </div>
+</section>
+{% endblock %}

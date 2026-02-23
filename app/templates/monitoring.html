@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Monitoring Center | SecureChain{% endblock %}
+{% block content %}
+<section class="rounded-3xl border border-violet-400/25 bg-slate-900/60 p-6 shadow-violet backdrop-blur-xl">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-violet-200">Monitoring and Alert Center</h1>
+            <p class="mt-1 text-sm text-slate-300">Uptime, request health, error tracking, and SIEM-ready audit stream.</p>
+        </div>
+        <a href="{{ url_for('main.admin_export_audit_ndjson') }}" class="chip-link !text-rose-200 !border-rose-400/30">Export SIEM NDJSON</a>
+    </div>
+</section>
+
+<section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-8">
+    <article class="glass-card"><p class="text-xs text-slate-400">Uptime</p><p class="mt-2 text-2xl font-bold text-cyan-200">{{ metrics.uptime_seconds }}s</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Request Events</p><p class="mt-2 text-2xl font-bold text-cyan-200">{{ metrics.request_events }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Error Events</p><p class="mt-2 text-2xl font-bold text-rose-300">{{ metrics.error_events }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Critical Events</p><p class="mt-2 text-2xl font-bold text-rose-300">{{ metrics.critical_events }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Auth Failures</p><p class="mt-2 text-2xl font-bold text-amber-300">{{ metrics.auth_failures }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">P95 Latency</p><p class="mt-2 text-2xl font-bold text-amber-200">{{ metrics.p95_latency_ms }}ms</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Queue Running</p><p class="mt-2 text-2xl font-bold text-fuchsia-300">{{ queue_stats.running }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Queue Failed</p><p class="mt-2 text-2xl font-bold text-rose-300">{{ queue_stats.failed }}</p></article>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-2">
+    <article class="rounded-2xl border border-rose-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-rose-200">Recent Error Stream</h2>
+        <ul class="mt-4 space-y-2 text-xs">
+            {% for row in recent_errors %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-rose-200">{{ row.timestamp[:19] }} UTC | {{ row.event_type }}</p>
+                    <p class="text-slate-300">{{ row.message }}</p>
+                    <p class="text-slate-500">{{ row.error or row.path or '-' }}</p>
+                </li>
+            {% else %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-slate-400">No error events in the selected window.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="rounded-2xl border border-cyan-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-cyan-200">Recent Request Telemetry</h2>
+        <ul class="mt-4 space-y-2 text-xs">
+            {% for row in recent_requests %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-cyan-200">{{ row.timestamp[:19] }} UTC | {{ row.method }} {{ row.path }}</p>
+                    <p class="text-slate-300">status={{ row.status_code }} | duration={{ row.duration_ms }}ms | user={{ row.user_id }}</p>
+                    <p class="text-slate-500">request_id={{ row.request_id }}</p>
+                </li>
+            {% else %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-slate-400">No request telemetry available.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+{% endblock %}

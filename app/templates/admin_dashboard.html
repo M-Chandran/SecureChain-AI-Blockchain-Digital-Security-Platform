@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+{% block title %}SOC Dashboard | SecureChain{% endblock %}
+{% block content %}
+<section class="mb-6 rounded-3xl border border-amber-400/25 bg-slate-900/70 p-6 shadow-violet backdrop-blur-xl">
+    <div class="grid gap-6 lg:grid-cols-3">
+        <div class="lg:col-span-2">
+            <h1 class="text-2xl font-bold text-amber-200 md:text-3xl">Admin Security Operations Center</h1>
+            <p class="mt-2 text-sm text-slate-300">System-wide threat governance for organizations and public verification programs.</p>
+            <div class="mt-4 flex flex-wrap gap-3 text-xs">
+                <span class="inline-flex rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-amber-200">Critical Alerts: {{ critical_unread_alerts }}</span>
+                <span class="inline-flex rounded-full border border-cyan-400/40 bg-cyan-500/10 px-3 py-1 text-cyan-200">Chain: {{ "Healthy" if health.is_valid else "Compromised" }}</span>
+                <span class="inline-flex rounded-full border border-fuchsia-400/40 bg-fuchsia-500/10 px-3 py-1 text-fuchsia-200">Open Incidents: {{ open_incidents }}</span>
+                <span class="inline-flex rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-amber-200">Review Queue: {{ open_review_requests }}</span>
+                {% if config.get('ENABLE_2FA', False) %}
+                    <span class="inline-flex rounded-full border border-violet-400/40 bg-violet-500/10 px-3 py-1 text-violet-200">Manual 2FA Queue: {{ open_two_factor_requests }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="rounded-2xl border border-slate-700/40 bg-slate-900/40 p-4">
+            <p class="text-xs uppercase tracking-wide text-slate-400">Admin Use Cases</p>
+            <ul class="mt-3 space-y-2 text-xs text-slate-300">
+                <li>Fraud triage and quarantine adjudication.</li>
+                <li>Policy enforcement and login abuse monitoring.</li>
+                <li>Cross-organization integrity and evidence audits.</li>
+                <li>External verification API governance.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="grid gap-4 md:grid-cols-2 xl:grid-cols-12">
+    <article class="glass-card"><p class="text-xs text-slate-400">Total Records</p><p class="mt-2 text-2xl font-bold text-cyan-200">{{ analytics.total_verified_files }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Quarantined</p><p class="mt-2 text-2xl font-bold text-amber-300">{{ analytics.quarantined_files }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">High Risk Queue</p><p class="mt-2 text-2xl font-bold text-rose-300">{{ high_risk_records|length }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Pending AI</p><p class="mt-2 text-2xl font-bold text-fuchsia-300">{{ pending_analyses }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Active Users</p><p class="mt-2 text-2xl font-bold text-emerald-300">{{ active_users }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Locked Users</p><p class="mt-2 text-2xl font-bold text-rose-300">{{ locked_users }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Suspicious Attempts</p><p class="mt-2 text-2xl font-bold text-amber-300">{{ analytics.suspicious_attempts }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Failed Logins (24h)</p><p class="mt-2 text-2xl font-bold text-amber-300">{{ failed_logins_24h }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Uploads (24h)</p><p class="mt-2 text-2xl font-bold text-cyan-200">{{ uploads_24h }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Unverified Emails</p><p class="mt-2 text-2xl font-bold text-amber-300">{{ unverified_users }}</p></article>
+    {% if config.get('ENABLE_2FA', False) %}
+        <article class="glass-card"><p class="text-xs text-slate-400">Manual 2FA Requests</p><p class="mt-2 text-2xl font-bold text-violet-200">{{ open_two_factor_requests }}</p></article>
+    {% endif %}
+    <article class="glass-card"><p class="text-xs text-slate-400">Queue Running</p><p class="mt-2 text-2xl font-bold text-violet-200">{{ queue_stats.running }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Queue Failed</p><p class="mt-2 text-2xl font-bold text-rose-300">{{ queue_stats.failed }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Error Events (24h)</p><p class="mt-2 text-2xl font-bold text-rose-300">{{ monitor_stats.error_events + monitor_stats.critical_events }}</p></article>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-3">
+    <article class="rounded-2xl border border-rose-400/20 bg-slate-900/50 p-5 xl:col-span-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-lg font-semibold text-rose-200">Threat Triage Queue</h2>
+            <a href="{{ url_for('main.integrity_center') }}" class="chip-link !border-fuchsia-400/30 !text-fuchsia-200">Open Integrity Center</a>
+        </div>
+        <p class="mt-1 text-xs text-slate-400">Records requiring adjudication based on risk and tamper indicators.</p>
+        <div class="mt-4 overflow-x-auto rounded-xl border border-slate-700/40">
+            <table class="min-w-full text-left text-xs text-slate-200">
+                <thead class="bg-slate-800/70 text-[11px] uppercase text-slate-400">
+                    <tr>
+                        <th class="px-3 py-2">VID</th>
+                        <th class="px-3 py-2">File</th>
+                        <th class="px-3 py-2">Owner</th>
+                        <th class="px-3 py-2">Risk</th>
+                        <th class="px-3 py-2">Status</th>
+                        <th class="px-3 py-2">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/50">
+                    {% for row in high_risk_records %}
+                        <tr class="hover:bg-slate-800/40">
+                            <td class="px-3 py-2 font-mono text-rose-200">{{ row.verification_id }}</td>
+                            <td class="px-3 py-2">{{ row.original_filename }}</td>
+                            <td class="px-3 py-2">{{ row.owner_username }}</td>
+                            <td class="px-3 py-2">{{ row.effective_risk }}%</td>
+                            <td class="px-3 py-2">
+                                {% if row.status == "quarantined" %}
+                                    <span class="rounded-full bg-amber-500/20 px-2 py-1 text-[11px] text-amber-200">Quarantined</span>
+                                {% else %}
+                                    <span class="rounded-full bg-rose-500/20 px-2 py-1 text-[11px] text-rose-200">High Risk</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-2"><a href="{{ url_for('main.record_detail', verification_id=row.verification_id) }}" class="chip-link">Investigate</a></td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="6" class="px-3 py-6 text-center text-slate-400">No high-risk records in queue.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="rounded-2xl border border-cyan-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-cyan-200">Governance Controls</h2>
+        <div class="mt-4 space-y-2 text-xs">
+            <a href="{{ url_for('main.compare_records') }}" class="block rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-center text-cyan-200 hover:bg-cyan-500/20">Open Comparison Lab</a>
+            <a href="{{ url_for('main.batch_verify') }}" class="block rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-center text-amber-200 hover:bg-amber-500/20">Run Admin Batch Verify</a>
+            <form method="POST" action="{{ url_for('main.run_integrity_scan') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="w-full rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-cyan-200 hover:bg-cyan-500/20">Run Integrity Scan</button>
+            </form>
+            <form method="POST" action="{{ url_for('main.admin_export_backup') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="w-full rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-emerald-200 hover:bg-emerald-500/20">Export Compliance Backup</button>
+            </form>
+            <a href="{{ url_for('main.export_admin_risk_board_csv') }}" class="block rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-center text-amber-200 hover:bg-amber-500/20">Export Risk Board CSV</a>
+            <a href="{{ url_for('main.admin_export_audit_ndjson') }}" class="block rounded-lg border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-center text-rose-200 hover:bg-rose-500/20">Export SIEM NDJSON</a>
+            <a href="{{ url_for('main.admin_panel') }}" class="block rounded-lg border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-center text-violet-200 hover:bg-violet-500/20">Open Admin Control Panel</a>
+            <a href="{{ url_for('main.admin_monitoring') }}" class="block rounded-lg border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-center text-violet-200 hover:bg-violet-500/20">Open Monitoring Center</a>
+            <a href="{{ url_for('main.admin_jobs') }}" class="block rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-center text-cyan-200 hover:bg-cyan-500/20">Open Job Queue</a>
+            <a href="{{ url_for('main.blockchain_explorer', portal='admin') }}" class="block rounded-lg border border-fuchsia-400/30 bg-fuchsia-500/10 px-3 py-2 text-center text-fuchsia-200 hover:bg-fuchsia-500/20">Open Blockchain Explorer</a>
+        </div>
+        <div class="mt-4 rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-xs">
+            <p class="text-slate-400">Policy thresholds</p>
+            <p class="text-slate-300">Risk Alert: {{ policy.risk_alert_threshold }}%</p>
+            <p class="text-slate-300">Quarantine: {{ policy.quarantine_threshold }}%</p>
+            <p class="text-slate-300">Anomaly Alert: {{ policy.anomaly_alert_threshold }}%</p>
+        </div>
+    </article>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-3">
+    <article class="rounded-2xl border border-fuchsia-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-fuchsia-200">Incident Command Queue</h2>
+        <ul class="mt-4 space-y-2 text-xs">
+            {% for incident in incidents %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-fuchsia-200">{{ incident.incident_id }} | {{ incident.severity|upper }}</p>
+                    <p class="text-slate-300">{{ incident.title }}</p>
+                    <p class="text-slate-500">{{ incident.status }} | VID {{ incident.verification_id }}</p>
+                </li>
+            {% else %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-slate-400">No open incidents.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="rounded-2xl border border-amber-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-amber-200">Quarantine Backlog</h2>
+        <ul class="mt-4 space-y-2 text-xs">
+            {% for row in quarantined_records %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-amber-200">{{ row.verification_id }}</p>
+                    <p class="text-slate-300">{{ row.original_filename }}</p>
+                    <p class="text-slate-500">Owner {{ row.owner_username }} | Risk {{ row.effective_risk }}%</p>
+                </li>
+            {% else %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-slate-400">No quarantined records.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="rounded-2xl border border-cyan-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-cyan-200">Organization Load Map</h2>
+        <ul class="mt-4 space-y-2 text-xs">
+            {% for owner, count in top_owners %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <div class="flex items-center justify-between">
+                        <p class="text-slate-300">{{ owner }}</p>
+                        <p class="font-mono text-cyan-200">{{ count }}</p>
+                    </div>
+                    <div class="mt-2 h-1.5 rounded-full bg-slate-700">
+                        <div class="h-1.5 rounded-full bg-gradient-to-r from-cyan-300 to-violet-300" style="width: {{ ((count / total_records_count * 100)|round(1)) if total_records_count else 0 }}%"></div>
+                    </div>
+                </li>
+            {% else %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-slate-400">No owner telemetry available.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-2">
+    <article class="rounded-2xl border border-cyan-400/20 bg-slate-900/50 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-lg font-semibold text-cyan-200">User Drive Verification Queue</h2>
+            <span class="rounded-full bg-cyan-500/20 px-2 py-1 text-[11px] text-cyan-200">Pending: {{ drive_pending_count }}</span>
+        </div>
+        <p class="mt-1 text-xs text-slate-400">Only admin can verify pending drive uploads into blockchain records.</p>
+        <div class="mt-4 space-y-2 text-xs">
+            {% for item in drive_pending_queue %}
+                <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-cyan-200">{{ item.drive_id }} | {{ item.username }} | {{ item.folder or "root" }}</p>
+                    <p class="text-slate-300">{{ item.original_filename }} ({{ (item.file_size|int / 1024)|round(1) }} KB)</p>
+                    <p class="text-slate-500">Uploaded {{ item.uploaded_at[:19] }} UTC</p>
+                    <form method="POST" action="{{ url_for('main.admin_drive_decision', drive_id=item.drive_id) }}" class="mt-2 grid gap-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input name="admin_note" placeholder="Admin note (required for rejection)" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                        <div class="flex flex-wrap gap-2">
+                            <button name="decision" value="approve" class="chip-link !text-emerald-200 !border-emerald-400/30">Approve + Verify</button>
+                            <button name="decision" value="reject" class="chip-link !text-rose-200 !border-rose-400/30">Reject</button>
+                            {% if item.user_id in known_user_ids %}
+                                <a href="{{ url_for('main.user_dashboard', user_id=item.user_id) }}" class="chip-link">User Dashboard</a>
+                            {% else %}
+                                <span class="chip-link !cursor-default !text-slate-400 !border-slate-600/40">Public Intake</span>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            {% else %}
+                <p class="text-slate-400">No pending drive items.</p>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="rounded-2xl border border-violet-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-violet-200">Recent Drive Decisions</h2>
+        <ul class="mt-4 space-y-2 text-xs">
+            {% for item in drive_recent_decisions %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-violet-200">{{ item.drive_id }} | {{ item.status|upper }}</p>
+                    <p class="text-slate-300">{{ item.username }} | {{ item.original_filename }}</p>
+                    <p class="text-slate-500">Admin: {{ item.admin_username or item.admin_id }} | {{ item.verified_at[:19] if item.verified_at else "-" }} UTC</p>
+                    {% if item.verification_id %}
+                        <a href="{{ url_for('main.record_detail', verification_id=item.verification_id) }}" class="mt-2 inline-flex chip-link">Open VID {{ item.verification_id }}</a>
+                    {% endif %}
+                </li>
+            {% else %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-slate-400">No reviewed drive items yet.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+
+<section class="mt-6 rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-lg font-semibold text-cyan-200">SOC Activity Stream</h2>
+        {% if latest_scan %}
+            <p class="text-xs text-slate-400">Last scan: {{ latest_scan.run_at[:19] }} UTC (failed: {{ latest_scan.failed_records }})</p>
+        {% endif %}
+    </div>
+    <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {% for activity in activities %}
+            <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-xs">
+                <p class="font-mono text-slate-300">{{ activity.timestamp[:19] }} UTC</p>
+                <p class="mt-1 text-cyan-200">{{ activity.action }} <span class="text-slate-500">({{ activity.status }})</span></p>
+                <p class="text-slate-400">User: {{ activity.user_id }}</p>
+                <p class="text-slate-500">{{ activity.details }}</p>
+            </div>
+        {% else %}
+            <p class="text-slate-400">No activity logs found.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-2">
+    <article class="rounded-2xl border border-amber-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-amber-200">Quarantine Review Queue</h2>
+        <p class="mt-1 text-xs text-slate-400">Approve or reject user requests for quarantined record release.</p>
+        <div class="mt-4 space-y-2 text-xs">
+            {% for request in review_queue %}
+                <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-amber-200">{{ request.request_id }} | VID {{ request.verification_id }}</p>
+                    <p class="text-slate-300">Requester: {{ request.requester_username }} ({{ request.requester_id }})</p>
+                    <p class="text-slate-400">{{ request.reason }}</p>
+                    <form method="POST" action="{{ url_for('main.resolve_review_request', request_id=request.request_id) }}" class="mt-2 grid gap-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input name="admin_note" placeholder="Resolution note" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                        <div class="flex flex-wrap gap-2">
+                            <button name="decision" value="approved" class="chip-link !text-emerald-200 !border-emerald-400/30">Approve & Release</button>
+                            <button name="decision" value="rejected" class="chip-link !text-rose-200 !border-rose-400/30">Reject</button>
+                            <a href="{{ url_for('main.record_detail', verification_id=request.verification_id) }}" class="chip-link">Record</a>
+                        </div>
+                    </form>
+                </div>
+            {% else %}
+                <p class="text-slate-400">No pending review requests.</p>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="rounded-2xl border border-rose-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-rose-200">User Risk Board</h2>
+        <p class="mt-1 text-xs text-slate-400">Composite account risk score from upload behavior, incidents, and failed logins.</p>
+        <div class="mt-4 overflow-x-auto rounded-xl border border-slate-700/40">
+            <table class="min-w-full text-left text-xs text-slate-200">
+                <thead class="bg-slate-800/70 text-[11px] uppercase text-slate-400">
+                    <tr>
+                        <th class="px-3 py-2">User</th>
+                        <th class="px-3 py-2">Score</th>
+                        <th class="px-3 py-2">Signals</th>
+                        <th class="px-3 py-2">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/50">
+                    {% for row in risk_board %}
+                        <tr>
+                            <td class="px-3 py-2">
+                                <p class="font-medium">{{ row.username }}</p>
+                                <p class="text-[11px] text-slate-400">{{ row.role }} | {{ row.account_status }}</p>
+                            </td>
+                            <td class="px-3 py-2">
+                                <span class="rounded-full px-2 py-1 text-[11px]
+                                    {% if row.risk_level == 'critical' %}
+                                        bg-rose-500/20 text-rose-200
+                                    {% elif row.risk_level == 'high' %}
+                                        bg-amber-500/20 text-amber-200
+                                    {% elif row.risk_level == 'elevated' %}
+                                        bg-fuchsia-500/20 text-fuchsia-200
+                                    {% else %}
+                                        bg-emerald-500/20 text-emerald-200
+                                    {% endif %}
+                                ">{{ row.risk_score }} ({{ row.risk_level }})</span>
+                            </td>
+                            <td class="px-3 py-2 text-[11px] text-slate-300">
+                                rec {{ row.record_count }} | hr {{ row.high_risk_count }} | q {{ row.quarantined_count }} | inc {{ row.open_incidents }} | fail {{ row.failed_logins }}
+                            </td>
+                            <td class="px-3 py-2">
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="{{ url_for('main.user_dashboard', user_id=row.user_id) }}" class="chip-link">Dashboard</a>
+                                    {% if row.username != 'admin' %}
+                                        <form method="POST" action="{{ url_for('main.admin_user_status', user_id=row.user_id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            {% if row.account_status == 'active' %}
+                                                <input type="hidden" name="account_status" value="locked">
+                                                <button class="chip-link !text-rose-200 !border-rose-400/30">Lock</button>
+                                            {% else %}
+                                                <input type="hidden" name="account_status" value="active">
+                                                <button class="chip-link !text-emerald-200 !border-emerald-400/30">Activate</button>
+                                            {% endif %}
+                                        </form>
+                                    {% else %}
+                                        <span class="text-[11px] text-slate-500">Protected</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="4" class="px-3 py-6 text-center text-slate-400">No risk board data available.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-2">
+    {% if config.get('ENABLE_2FA', False) %}
+        <article class="rounded-2xl border border-violet-400/20 bg-slate-900/50 p-5">
+            <h2 class="text-lg font-semibold text-violet-200">Manual 2FA Review Queue</h2>
+            <p class="mt-1 text-xs text-slate-400">Managers can manually inspect submitted 2FA code and grant time-bound delegated scopes.</p>
+            <div class="mt-4 space-y-2 text-xs">
+                {% for req in two_factor_queue %}
+                    <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                        <p class="font-mono text-violet-200">{{ req.request_id }} | {{ req.username }} ({{ req.user_id }})</p>
+                        <p class="text-slate-300">Submitted 2FA Code: <span class="font-mono text-amber-200">{{ req.otp_code }}</span></p>
+                        {% if req.otp_validated == "1" %}
+                            <p class="text-emerald-300">System OTP Validation: Verified at {{ req.otp_validated_at[:19] if req.otp_validated_at else req.submitted_at[:19] }} UTC</p>
+                        {% else %}
+                            <p class="text-rose-300">System OTP Validation: Not verified (request must be resubmitted).</p>
+                        {% endif %}
+                        <p class="text-slate-500">Reason: {{ req.reason }} | {{ req.submitted_at[:19] }} UTC</p>
+                        <form method="POST" action="{{ url_for('main.admin_two_factor_review_decision', request_id=req.request_id) }}" class="mt-2 grid gap-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="grid gap-2 md:grid-cols-2">
+                                <input name="delegated_scopes" value="verify_batch,compare_lab" placeholder="Scopes CSV" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                                <input name="delegated_hours" type="number" min="1" max="72" value="8" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                            </div>
+                            <input name="admin_note" placeholder="Admin note (required for force approve, min 12 chars)" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                            <label class="flex items-center gap-2 text-[11px] text-amber-200">
+                                <input type="checkbox" name="force_ack" value="1" class="h-3.5 w-3.5 rounded border-slate-500 bg-slate-900">
+                                Confirm emergency override for Force Approve.
+                            </label>
+                            <div class="flex flex-wrap gap-2">
+                                <button name="decision" value="approved" class="chip-link !text-emerald-200 !border-emerald-400/30">Approve + Delegate (Validated)</button>
+                                <button name="decision" value="force_approved" class="chip-link !text-amber-200 !border-amber-400/30">Force Approve</button>
+                                <button name="decision" value="rejected" class="chip-link !text-rose-200 !border-rose-400/30">Reject</button>
+                                <a href="{{ url_for('main.user_dashboard', user_id=req.user_id) }}" class="chip-link">Open User</a>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <p class="text-slate-400">No pending manual 2FA requests.</p>
+                {% endfor %}
+            </div>
+        </article>
+    {% endif %}
+
+    <article class="rounded-2xl border border-emerald-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-emerald-200">Delegated Admin Access</h2>
+        <p class="mt-1 text-xs text-slate-400">Users temporarily allowed to perform admin-side tasks (Batch Verify / Compare Lab).</p>
+        <div class="mt-4 space-y-2 text-xs">
+            {% for user in delegated_users %}
+                <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-emerald-200">{{ user.username }} ({{ user.user_id }})</p>
+                    <p class="text-slate-300">Scopes: {{ user.delegated_admin_scopes or "-" }}</p>
+                    <p class="text-slate-500">Until: {{ user.delegated_admin_until[:19] if user.delegated_admin_until else "-" }} UTC | By: {{ user.delegated_admin_by or "-" }}</p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <a href="{{ url_for('main.user_dashboard', user_id=user.user_id) }}" class="chip-link">Open Dashboard</a>
+                        <form method="POST" action="{{ url_for('main.admin_revoke_delegation', user_id=user.user_id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="chip-link !text-rose-200 !border-rose-400/30">Revoke</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-slate-400">No delegated users currently active.</p>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>{% block title %}SecureChain{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ["Space Grotesk", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    },
+                    colors: {
+                        cyber: {
+                            bg: "#040816",
+                            card: "#0B1120",
+                            cyan: "#00E5FF",
+                            violet: "#8A63FF",
+                            mint: "#20E3B2"
+                        }
+                    },
+                    boxShadow: {
+                        glow: "0 0 30px rgba(0, 229, 255, 0.25)",
+                        violet: "0 0 35px rgba(138, 99, 255, 0.25)"
+                    }
+                }
+            }
+        };
+        (function () {
+            const saved = localStorage.getItem("theme");
+            if (saved === "light") {
+                document.documentElement.classList.remove("dark");
+            } else {
+                document.documentElement.classList.add("dark");
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    {% block head %}{% endblock %}
+</head>
+<body class="font-display min-h-screen bg-slate-100 text-slate-900 dark:bg-cyber-bg dark:text-slate-100">
+    <div class="cyber-backdrop"></div>
+    <header class="sticky top-0 z-40 border-b border-cyan-400/20 bg-white/70 backdrop-blur-xl dark:bg-slate-950/70">
+        <nav class="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-4 py-3 md:px-8">
+            <a href="{{ url_for('main.index') }}" class="flex items-center gap-2 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-cyber-cyan">
+                <span class="h-2 w-2 rounded-full bg-cyber-cyan shadow-glow"></span>
+                SecureChain
+            </a>
+            <div class="ml-auto flex flex-1 flex-wrap items-center justify-end gap-2 text-sm">
+                {% if session.get('user_id') %}
+                    {% set portal_mode = active_portal if active_portal in ['admin', 'user'] else ('admin' if session.get('role') == 'admin' else 'user') %}
+                    {% if portal_mode == 'admin' and session.get('role') == 'admin' %}
+                        <div class="flex flex-wrap items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-500/5 px-2 py-1">
+                            <a href="{{ url_for('main.admin_dashboard', portal='admin') }}" class="nav-link">SOC Dashboard</a>
+                            <a href="{{ url_for('main.admin_panel', portal='admin') }}" class="nav-link">Admin</a>
+                            <a href="{{ url_for('main.integrity_center', portal='admin') }}" class="nav-link">Integrity</a>
+                            <a href="{{ url_for('main.compare_records', portal='admin') }}" class="nav-link">Compare Lab</a>
+                            <a href="{{ url_for('main.admin_monitoring', portal='admin') }}" class="nav-link">Monitoring</a>
+                            <a href="{{ url_for('main.admin_jobs', portal='admin') }}" class="nav-link">Jobs</a>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-500/5 px-2 py-1">
+                            <a href="{{ url_for('main.batch_verify', portal='admin') }}" class="nav-link">Batch Verify</a>
+                            <a href="{{ url_for('main.public_verify', portal='admin') }}" class="nav-link">Public Verify</a>
+                            <a href="{{ url_for('main.public_upload', portal='admin') }}" class="nav-link">Public Upload</a>
+                        </div>
+                        <a href="{{ url_for('main.blockchain_explorer', portal='admin') }}" class="nav-link">Blockchain</a>
+                        <a href="{{ url_for('main.assistant', portal='admin') }}" class="nav-link">AI Copilot</a>
+                        <a href="{{ url_for('main.profile_page', portal='admin') }}" class="nav-link">Profile</a>
+                        <!-- Dashboard Switcher - allows admin users to switch to user dashboard -->
+                        {% if session.get('role') == 'admin' %}
+                            <a href="{{ url_for('main.user_dashboard', user_id=session.get('user_id'), portal='user') }}" class="nav-link text-cyan-300">Switch to User</a>
+                        {% endif %}
+                        <a href="{{ url_for('auth.logout', portal='admin') }}" class="rounded-lg border border-rose-500/40 px-3 py-1 text-rose-300 hover:bg-rose-500/20">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('main.user_dashboard', user_id=session.get('user_id'), portal='user') }}" class="nav-link">Dashboard</a>
+                        <a href="{{ url_for('main.user_dashboard', user_id=session.get('user_id'), portal='user') }}#batch-upload" class="nav-link">Batch Upload</a>
+                        <a href="{{ url_for('main.assistant', portal='user') }}" class="nav-link">AI Copilot</a>
+                        <a href="{{ url_for('main.blockchain_explorer', portal='user') }}" class="nav-link">Blockchain</a>
+                        <a href="{{ url_for('main.profile_page', portal='user') }}" class="nav-link">Profile</a>
+                        <a href="{{ url_for('main.public_upload', portal='user') }}" class="nav-link">Public Upload</a>
+                        <a href="{{ url_for('main.public_verify', portal='user') }}" class="nav-link">Public Verify</a>
+                        <!-- Dashboard Switcher - only primary admin-role accounts can switch to admin dashboard -->
+                        {% if session.get('role') == 'admin' %}
+                            <a href="{{ url_for('main.admin_dashboard', portal='admin') }}" class="nav-link text-amber-300">Switch to Admin</a>
+                        {% endif %}
+                        <a href="{{ url_for('auth.logout', portal='user') }}" class="rounded-lg border border-rose-500/40 px-3 py-1 text-rose-300 hover:bg-rose-500/20">Logout</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('main.public_upload') }}" class="nav-link">Public Upload</a>
+                    <a href="{{ url_for('main.public_verify') }}" class="nav-link">Public Verify</a>
+                    <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+                    <a href="{{ url_for('auth.signup') }}" class="rounded-lg border border-cyan-400/40 px-3 py-1 text-cyan-300 hover:bg-cyan-500/20">Start Free</a>
+                {% endif %}
+                <button id="theme-toggle" class="rounded-md border border-slate-500/40 px-2 py-1 text-xs text-slate-300 hover:bg-slate-500/20">Theme</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="relative z-10 mx-auto w-full max-w-7xl px-4 py-6 md:px-8 md:py-10">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for category, message in messages %}
+                        <div class="rounded-xl border px-4 py-3 text-sm backdrop-blur-xl
+                            {% if category == 'success' %}
+                                border-emerald-500/40 bg-emerald-500/10 text-emerald-200
+                            {% else %}
+                                border-rose-500/40 bg-rose-500/10 text-rose-200
+                            {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

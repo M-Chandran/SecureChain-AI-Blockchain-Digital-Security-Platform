@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Batch Verification | SecureChain{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-5xl rounded-3xl border border-cyan-400/25 bg-slate-900/60 p-6 shadow-glow backdrop-blur-xl">
+    <h1 class="text-2xl font-bold text-cyan-200">Admin Batch Verification</h1>
+    <p class="mt-2 text-sm text-slate-300">Admin-only workflow: verify multiple IDs in one request. Paste IDs separated by comma, space, or newline.</p>
+
+    <form method="POST" class="mt-5 grid gap-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <textarea
+            name="verification_ids"
+            rows="4"
+            placeholder="Example: A1B2C3D4E5F6, 112233AABBCC"
+            class="rounded-xl border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm outline-none ring-cyan-300 focus:ring"
+        >{{ verification_ids }}</textarea>
+        <div class="flex flex-wrap gap-2">
+            <button class="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-300">Run Batch Verification</button>
+            <a href="{{ url_for('main.public_verify') }}" class="rounded-xl border border-violet-400/40 px-4 py-2 text-sm font-semibold text-violet-200 hover:bg-violet-500/20">Single Verify</a>
+            <a href="{{ url_for('main.admin_dashboard') }}" class="rounded-xl border border-amber-400/40 px-4 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-500/20">Back to SOC</a>
+        </div>
+    </form>
+</section>
+
+{% if stats.total > 0 %}
+<section class="mx-auto mt-6 max-w-5xl grid gap-4 md:grid-cols-4">
+    <article class="glass-card">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Total IDs</p>
+        <p class="mt-2 text-2xl font-bold text-cyan-200">{{ stats.total }}</p>
+    </article>
+    <article class="glass-card">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Authentic</p>
+        <p class="mt-2 text-2xl font-bold text-emerald-300">{{ stats.authentic }}</p>
+    </article>
+    <article class="glass-card">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Tampered</p>
+        <p class="mt-2 text-2xl font-bold text-rose-300">{{ stats.tampered }}</p>
+    </article>
+    <article class="glass-card">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Not Found</p>
+        <p class="mt-2 text-2xl font-bold text-amber-300">{{ stats.missing }}</p>
+    </article>
+</section>
+
+<section class="mx-auto mt-6 max-w-5xl overflow-x-auto rounded-2xl border border-slate-700/40 bg-slate-900/50 p-4">
+    <table class="min-w-full text-left text-xs text-slate-200">
+        <thead class="bg-slate-800/70 text-[11px] uppercase text-slate-400">
+            <tr>
+                <th class="px-3 py-2">Verification ID</th>
+                <th class="px-3 py-2">Status</th>
+                <th class="px-3 py-2">File</th>
+                <th class="px-3 py-2">Owner</th>
+                <th class="px-3 py-2">Risk</th>
+                <th class="px-3 py-2">Authenticity</th>
+                <th class="px-3 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-700/50">
+            {% for item in results %}
+                <tr class="hover:bg-slate-800/40">
+                    <td class="px-3 py-2 font-mono text-cyan-200">{{ item.verification_id }}</td>
+                    <td class="px-3 py-2">
+                        {% if not item.exists %}
+                            <span class="rounded-full bg-amber-500/20 px-2 py-1 text-[11px] text-amber-200">Not Found</span>
+                        {% elif item.tamper_detected %}
+                            <span class="rounded-full bg-rose-500/20 px-2 py-1 text-[11px] text-rose-200">Integrity Alert</span>
+                        {% else %}
+                            <span class="rounded-full bg-emerald-500/20 px-2 py-1 text-[11px] text-emerald-200">Authentic</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2">{{ item.record.original_filename if item.exists else "-" }}</td>
+                    <td class="px-3 py-2">{{ item.record.owner_username if item.exists else "-" }}</td>
+                    <td class="px-3 py-2">{{ item.risk_percentage }}{% if item.exists and item.risk_percentage != "Pending" %}%{% endif %}</td>
+                    <td class="px-3 py-2">{{ item.authenticity_score }}{% if item.exists and item.authenticity_score != "Pending" %}%{% endif %}</td>
+                    <td class="px-3 py-2">
+                        {% if item.exists %}
+                            <a href="{{ url_for('main.public_verify', verification_id=item.verification_id) }}" class="chip-link">Open</a>
+                        {% else %}
+                            <span class="text-slate-500">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+{% endblock %}

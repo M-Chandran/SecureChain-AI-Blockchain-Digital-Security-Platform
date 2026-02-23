@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Support Bot | SecureChain{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-4xl rounded-3xl border border-cyan-400/20 bg-slate-900/60 p-6 shadow-glow backdrop-blur-xl">
+    <h1 class="text-2xl font-bold text-cyan-200">SecureChain Support Bot</h1>
+    <p class="mt-2 text-sm text-slate-300">
+        Ask anything about login, verification, reports, ownership transfer, and security policy setup.
+    </p>
+    <div id="support-chat-box" class="mt-5 h-[420px] space-y-3 overflow-y-auto rounded-xl border border-slate-700/40 bg-slate-900/40 p-4">
+        <div class="max-w-[85%] rounded-xl border border-cyan-400/30 bg-cyan-500/10 p-3 text-sm text-cyan-100">
+            I am your support assistant. Ask me how to use the platform or troubleshoot access.
+        </div>
+    </div>
+    <form id="support-chat-form" class="mt-4 flex gap-3">
+        <input id="support-message-input" required placeholder="Type your question..." class="flex-1 rounded-xl border border-slate-600 bg-slate-900 px-3 py-2 text-sm outline-none ring-cyan-300 focus:ring">
+        <button class="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-cyan-300">Send</button>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.SecureChain = window.SecureChain || {};
+    window.SecureChain.supportPage = true;
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{
+  "B83DF2CA3EC2": {
+    "status": "complete",
+    "risk_percentage": "8",
+    "authenticity_score": "97",
+    "fraud_indicator": "Low",
+    "security_summary": "Document appears trustworthy with low manipulation risk.",
+    "explanation": "Score is derived from extension risk, file size pattern, version churn, and blockchain integrity.",
+    "recommendations": [
+      "Keep original source documents for legal backup.",
+      "Share verification URL instead of raw files when possible."
+    ],
+    "updated_at": "2026-02-22T16:17:21.335166+00:00"
+  }
+}

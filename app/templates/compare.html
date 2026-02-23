@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Compare Records | SecureChain{% endblock %}
+{% block content %}
+<section class="rounded-3xl border border-cyan-400/20 bg-slate-900/60 p-6 shadow-glow backdrop-blur-xl">
+    <h1 class="text-2xl font-bold text-cyan-200">Verification Comparison Lab</h1>
+    <p class="mt-2 text-sm text-slate-300">Compare two records side by side for tamper checks, ownership drift, and risk shift.</p>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-3">
+    <article class="rounded-2xl border border-cyan-400/20 bg-slate-900/50 p-5 xl:col-span-2">
+        <h2 class="text-lg font-semibold text-cyan-200">Select Records</h2>
+        <form method="POST" action="{{ url_for('main.compare_records') }}" class="mt-4 grid gap-3 text-sm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="grid gap-3 md:grid-cols-2">
+                <div>
+                    <label class="mb-1 block text-xs text-slate-400">First Verification ID</label>
+                    <select name="first_verification_id" required class="w-full rounded-xl border border-slate-600 bg-slate-900 px-3 py-2">
+                        <option value="">Select record</option>
+                        {% for record in records %}
+                            <option value="{{ record.verification_id }}" {% if first_id == record.verification_id %}selected{% endif %}>
+                                {{ record.verification_id }} | {{ record.original_filename }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs text-slate-400">Second Verification ID</label>
+                    <select name="second_verification_id" required class="w-full rounded-xl border border-slate-600 bg-slate-900 px-3 py-2">
+                        <option value="">Select record</option>
+                        {% for record in records %}
+                            <option value="{{ record.verification_id }}" {% if second_id == record.verification_id %}selected{% endif %}>
+                                {{ record.verification_id }} | {{ record.original_filename }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button class="w-fit rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-cyan-300">Run Comparison</button>
+        </form>
+    </article>
+
+    <article class="rounded-2xl border border-violet-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-violet-200">Fast Insights</h2>
+        <ul class="mt-3 space-y-2 text-xs text-slate-300">
+            <li class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-2">Detect duplicate content by hash match.</li>
+            <li class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-2">Spot ownership changes across versions.</li>
+            <li class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-2">Track risk score movement for escalation.</li>
+            <li class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-2">Use with incident workflows for audit readiness.</li>
+        </ul>
+    </article>
+</section>
+
+{% if compare_result %}
+    {% if not compare_result.available %}
+        <section class="mt-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">
+            {{ compare_result.message }}
+        </section>
+    {% else %}
+        <section class="mt-6 grid gap-6 xl:grid-cols-2">
+            <article class="rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5">
+                <h3 class="text-sm font-semibold text-cyan-200">Record A</h3>
+                <p class="mt-2 font-mono text-xs text-cyan-300">{{ compare_result.first.verification_id }}</p>
+                <p class="text-sm text-slate-300">{{ compare_result.first.original_filename }}</p>
+                <p class="text-xs text-slate-400">Owner: {{ compare_result.first.owner_username }} ({{ compare_result.first.owner_id }})</p>
+                <p class="text-xs text-slate-400">Status: {{ compare_result.first.status }} | Risk: {{ compare_result.first_risk }}%</p>
+                <p class="mt-2 text-xs text-slate-500">Hash: {{ compare_result.first.file_hash }}</p>
+            </article>
+            <article class="rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5">
+                <h3 class="text-sm font-semibold text-violet-200">Record B</h3>
+                <p class="mt-2 font-mono text-xs text-violet-300">{{ compare_result.second.verification_id }}</p>
+                <p class="text-sm text-slate-300">{{ compare_result.second.original_filename }}</p>
+                <p class="text-xs text-slate-400">Owner: {{ compare_result.second.owner_username }} ({{ compare_result.second.owner_id }})</p>
+                <p class="text-xs text-slate-400">Status: {{ compare_result.second.status }} | Risk: {{ compare_result.second_risk }}%</p>
+                <p class="mt-2 text-xs text-slate-500">Hash: {{ compare_result.second.file_hash }}</p>
+            </article>
+        </section>
+
+        <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <article class="glass-card">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Hash Match</p>
+                <p class="mt-2 text-lg font-bold {{ 'text-emerald-300' if compare_result.hash_match else 'text-rose-300' }}">
+                    {{ 'Yes' if compare_result.hash_match else 'No' }}
+                </p>
+            </article>
+            <article class="glass-card">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Same Owner</p>
+                <p class="mt-2 text-lg font-bold {{ 'text-emerald-300' if compare_result.same_owner else 'text-amber-300' }}">
+                    {{ 'Yes' if compare_result.same_owner else 'No' }}
+                </p>
+            </article>
+            <article class="glass-card">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Same Status</p>
+                <p class="mt-2 text-lg font-bold {{ 'text-emerald-300' if compare_result.same_status else 'text-amber-300' }}">
+                    {{ 'Yes' if compare_result.same_status else 'No' }}
+                </p>
+            </article>
+            <article class="glass-card">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Risk Delta (B-A)</p>
+                <p class="mt-2 text-lg font-bold {% if compare_result.risk_delta > 0 %}text-rose-300{% elif compare_result.risk_delta < 0 %}text-emerald-300{% else %}text-slate-300{% endif %}">
+                    {{ compare_result.risk_delta }}%
+                </p>
+            </article>
+        </section>
+    {% endif %}
+{% endif %}
+{% endblock %}

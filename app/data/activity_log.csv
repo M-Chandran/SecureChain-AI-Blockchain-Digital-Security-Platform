@@ -1,0 +1,78 @@
+timestamp,user_id,action,status,details,ip_address
+2026-02-22T14:32:16.656116+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-22T14:33:16.151741+00:00,u9954ad41,integrity_scan_run,success,total=7 failed=0,127.0.0.1
+2026-02-22T14:34:03.604254+00:00,u9954ad41,record_compare,success,B2FDCFD67270 vs B2FDCFD67270,127.0.0.1
+2026-02-22T14:34:13.807203+00:00,u9954ad41,record_compare,success,B2FDCFD67270 vs 3860FE7A52EF,127.0.0.1
+2026-02-22T14:34:45.763353+00:00,u9954ad41,support_chat,success,qw,127.0.0.1
+2026-02-22T14:36:35.678373+00:00,u9954ad41,support_chat,success,Include verification ID if available.,127.0.0.1
+2026-02-22T14:36:43.560000+00:00,u9954ad41,support_chat,success,Include verification ID if available,127.0.0.1
+2026-02-22T14:37:02.186542+00:00,u9954ad41,logout,success,Session closed,127.0.0.1
+2026-02-22T15:22:06.549428+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-22T15:22:21.188010+00:00,u9954ad41,admin_drive_decision,success,DRIVE=C3DE81DFF9AC approved VID=C89AE2D5A71F,127.0.0.1
+2026-02-22T15:43:51.537205+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-22T15:44:40.555281+00:00,u9954ad41,incident_status_update,success,9B8DC788306D -> in_review,127.0.0.1
+2026-02-22T15:44:59.189643+00:00,u9954ad41,logout,success,Session closed,127.0.0.1
+2026-02-22T16:16:45.056840+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-22T16:17:02.695508+00:00,u9954ad41,admin_drive_decision,success,DRIVE=01C79741AE7E rejected,127.0.0.1
+2026-02-22T16:17:21.338559+00:00,u9954ad41,admin_drive_decision,success,DRIVE=6E87AAF03201 approved VID=B83DF2CA3EC2,127.0.0.1
+2026-02-22T16:17:37.844579+00:00,u9954ad41,admin_drive_decision,success,DRIVE=008F2145FC15 approved VID=AD0BCE9F5784,127.0.0.1
+2026-02-22T16:18:09.126465+00:00,u9954ad41,integrity_scan_run,success,total=10 failed=0,127.0.0.1
+2026-02-22T16:18:28.041752+00:00,u9954ad41,record_compare,success,4143D3DE17F6 vs 4143D3DE17F6,127.0.0.1
+2026-02-22T16:18:52.573906+00:00,u9954ad41,public_verify,success,VID=3860FE7A52EF,127.0.0.1
+2026-02-22T16:20:39.433146+00:00,u9954ad41,profile_update,success,Profile details updated,127.0.0.1
+2026-02-22T16:21:03.570170+00:00,u9954ad41,profile_update,success,Profile details updated,127.0.0.1
+2026-02-22T16:21:29.649620+00:00,u9954ad41,logout,success,Session closed,127.0.0.1
+2026-02-22T17:12:02.484637+00:00,u9954ad41,login,failed,Email not verified,127.0.0.1
+2026-02-22T17:14:01.732119+00:00,u9954ad41,email_verify,success,Email verification complete,127.0.0.1
+2026-02-22T17:14:13.897073+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-22T17:14:55.135502+00:00,u9954ad41,admin_audit_export,success,hours=168 bytes=33301,127.0.0.1
+2026-02-22T17:15:06.744263+00:00,u9954ad41,integrity_scan_run,success,total=10 failed=0,127.0.0.1
+2026-02-22T17:38:03.017134+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-22T17:53:53.220505+00:00,u9954ad41,admin_email_verify_update,success,uaa1596e5 -> verified,127.0.0.1
+2026-02-22T17:54:24.405190+00:00,u9954ad41,integrity_scan_run,success,total=10 failed=0,127.0.0.1
+2026-02-22T18:01:03.115374+00:00,u9954ad41,admin_email_verify_update,success,ud3b1c108 -> verified,127.0.0.1
+2026-02-22T18:03:16.448452+00:00,u9954ad41,logout,success,Session closed,127.0.0.1
+2026-02-22T18:32:28.188017+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-22T18:32:52.838827+00:00,u9954ad41,admin_email_verify_update,success,user001 -> unverified,127.0.0.1
+2026-02-22T18:32:57.221936+00:00,u9954ad41,admin_email_verify_update,success,user001 -> verified,127.0.0.1
+2026-02-22T18:33:17.896532+00:00,u9954ad41,logout,success,Session closed,127.0.0.1
+2026-02-23T05:02:17.881285+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T05:08:59.968964+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T05:14:08.089178+00:00,u9954ad41,logout,success,Session closed,127.0.0.1
+2026-02-23T05:15:38.303052+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T05:17:44.571351+00:00,u9954ad41,record_compare,success,B2FDCFD67270 vs B2FDCFD67270,127.0.0.1
+2026-02-23T05:20:10.628021+00:00,u9954ad41,logout,success,Session closed,127.0.0.1
+2026-02-23T05:25:49.272318+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T05:32:25.771661+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T05:32:48.131906+00:00,u9954ad41,admin_manual_2fa_review,failed,10BA5F31829E reject_reason=2fa_disabled,127.0.0.1
+2026-02-23T05:33:50.375524+00:00,u9954ad41,logout,success,Session closed,127.0.0.1
+2026-02-23T05:51:38.620492+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T05:52:00.461426+00:00,u9954ad41,admin_manual_2fa_review,failed,27F9F28C21B2 reject_reason=2fa_disabled,127.0.0.1
+2026-02-23T06:02:15.732970+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T06:29:48.420513+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T06:35:17.699858+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T06:36:18.050397+00:00,u9954ad41,admin_email_verify_update,success,user001 -> unverified,127.0.0.1
+2026-02-23T06:36:49.515535+00:00,u9954ad41,admin_email_verify_update,success,user001 -> verified,127.0.0.1
+2026-02-23T06:45:59.513913+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T06:55:54.329186+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T06:55:58.477368+00:00,u9954ad41,logout,success,Session closed,127.0.0.1
+2026-02-23T06:56:53.975021+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T06:58:38.102467+00:00,u9954ad41,integrity_scan_run,success,total=10 failed=0,127.0.0.1
+2026-02-23T07:00:32.363614+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T07:01:00.013942+00:00,u9954ad41,admin_drive_decision,success,DRIVE=51BB58412689 approved VID=472240447B0B job=JOB19C894D23E259400,127.0.0.1
+2026-02-23T07:01:06.121216+00:00,u9954ad41,admin_drive_decision,success,DRIVE=077AC2ED62D2 approved VID=1F08EF651D7B job=JOB19C894D3BBC44000,127.0.0.1
+2026-02-23T07:08:03.848319+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T07:08:38.544921+00:00,u9954ad41,integrity_scan_run,success,total=12 failed=0,system
+2026-02-23T07:09:15.011187+00:00,u9954ad41,admin_email_verify_update,success,u8258a2a0 -> verified,127.0.0.1
+2026-02-23T07:18:35.130846+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T07:20:08.552231+00:00,u9954ad41,integrity_scan_run,success,total=12 failed=0,system
+2026-02-23T07:56:08.647016+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T08:03:56.404890+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T08:04:22.688415+00:00,u9954ad41,admin_email_verify_update,success,u69542bad -> verified,127.0.0.1
+2026-02-23T08:04:38.330950+00:00,u69542bad,login,success,User authenticated,127.0.0.1
+2026-02-23T08:09:30.497813+00:00,u9954ad41,login,success,User authenticated,127.0.0.1
+2026-02-23T08:11:35.924168+00:00,u69542bad,login,success,User authenticated,127.0.0.1
+2026-02-23T08:12:20.228197+00:00,u69542bad,upload,failed,File type blocked: Mocco Dataset.rar,127.0.0.1
+2026-02-23T08:12:20.237589+00:00,u69542bad,upload,success,Black Illustrative Technology Poster.jpg (0.4 MB) DRIVE=919DF6185529 folder=root status=pending,127.0.0.1
+2026-02-23T08:12:20.259333+00:00,u69542bad,upload,success,Jpeg DCT Compress Based Defake Report.doc (1.23 MB) DRIVE=2518CD045553 folder=root status=pending,127.0.0.1
+2026-02-23T08:12:20.313609+00:00,u69542bad,upload,success,Single image dehazing Report.doc (3.55 MB) DRIVE=99D7BF274B6A folder=root status=pending,127.0.0.1

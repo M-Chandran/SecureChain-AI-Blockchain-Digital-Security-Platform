@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Job Queue | SecureChain{% endblock %}
+{% block content %}
+<section class="rounded-3xl border border-cyan-400/25 bg-slate-900/60 p-6 shadow-glow backdrop-blur-xl">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-cyan-200">Background Job Queue</h1>
+            <p class="mt-1 text-sm text-slate-300">AI analysis, report generation, and integrity scan workers running outside request threads.</p>
+        </div>
+        <a href="{{ url_for('main.admin_monitoring') }}" class="chip-link">Open Monitoring</a>
+    </div>
+</section>
+
+<section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <article class="glass-card"><p class="text-xs text-slate-400">Queued</p><p class="mt-2 text-2xl font-bold text-cyan-200">{{ queue_stats.queued }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Running</p><p class="mt-2 text-2xl font-bold text-fuchsia-300">{{ queue_stats.running }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Completed</p><p class="mt-2 text-2xl font-bold text-emerald-300">{{ queue_stats.completed }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Failed</p><p class="mt-2 text-2xl font-bold text-rose-300">{{ queue_stats.failed }}</p></article>
+    <article class="glass-card"><p class="text-xs text-slate-400">Total</p><p class="mt-2 text-2xl font-bold text-slate-100">{{ queue_stats.total }}</p></article>
+</section>
+
+<section class="mt-6 rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5">
+    <h2 class="text-lg font-semibold text-cyan-200">Recent Jobs</h2>
+    <div class="mt-4 overflow-x-auto rounded-xl border border-slate-700/40">
+        <table class="min-w-full text-left text-xs text-slate-200">
+            <thead class="bg-slate-800/70 text-[11px] uppercase text-slate-400">
+                <tr>
+                    <th class="px-3 py-2">Job ID</th>
+                    <th class="px-3 py-2">Type</th>
+                    <th class="px-3 py-2">Requested By</th>
+                    <th class="px-3 py-2">Status</th>
+                    <th class="px-3 py-2">Created</th>
+                    <th class="px-3 py-2">Finished</th>
+                    <th class="px-3 py-2">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/50">
+                {% for job in jobs %}
+                    <tr>
+                        <td class="px-3 py-2 font-mono text-cyan-200">{{ job.job_id }}</td>
+                        <td class="px-3 py-2">{{ job.job_type }}</td>
+                        <td class="px-3 py-2">{{ job.requested_by }}</td>
+                        <td class="px-3 py-2">
+                            {% if job.status == 'completed' %}
+                                <span class="rounded-full bg-emerald-500/20 px-2 py-1 text-[11px] text-emerald-200">completed</span>
+                            {% elif job.status == 'failed' %}
+                                <span class="rounded-full bg-rose-500/20 px-2 py-1 text-[11px] text-rose-200">failed</span>
+                            {% elif job.status == 'running' %}
+                                <span class="rounded-full bg-fuchsia-500/20 px-2 py-1 text-[11px] text-fuchsia-200">running</span>
+                            {% else %}
+                                <span class="rounded-full bg-cyan-500/20 px-2 py-1 text-[11px] text-cyan-200">queued</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2 font-mono text-[11px] text-slate-400">{{ job.created_at[:19] if job.created_at else '-' }}</td>
+                        <td class="px-3 py-2 font-mono text-[11px] text-slate-400">{{ job.finished_at[:19] if job.finished_at else '-' }}</td>
+                        <td class="px-3 py-2">
+                            <a href="{{ url_for('main.job_status', job_id=job.job_id) }}" class="chip-link">Status JSON</a>
+                            {% if job.result and job.result.artifact_name %}
+                                <a href="{{ url_for('main.download_job_artifact', job_id=job.job_id) }}" class="chip-link !text-emerald-200 !border-emerald-400/30">Download</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7" class="px-3 py-6 text-center text-slate-400">No jobs yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

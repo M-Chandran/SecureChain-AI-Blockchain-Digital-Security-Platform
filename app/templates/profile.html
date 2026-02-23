@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Encrypted Personal Profile | SecureChain{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-4xl rounded-3xl border border-emerald-400/20 bg-slate-900/60 p-6 shadow-glow backdrop-blur-xl">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-emerald-200">Encrypted Personal Profile</h1>
+            <p class="mt-1 text-sm text-slate-300">Your profile is encrypted at rest with platform security keys.</p>
+        </div>
+        {% if edit_mode %}
+            <a href="{{ url_for('main.profile_page', portal='admin' if session.get('role') == 'admin' else 'user') }}" class="chip-link">Cancel Edit</a>
+        {% else %}
+            <a href="{{ url_for('main.profile_page', mode='edit', portal='admin' if session.get('role') == 'admin' else 'user') }}" class="chip-link !text-emerald-200 !border-emerald-400/40">Edit Profile</a>
+        {% endif %}
+    </div>
+
+    {% if edit_mode %}
+        <form method="POST" action="{{ url_for('main.update_profile') }}" class="mt-5 grid gap-3 text-sm md:grid-cols-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="return_to" value="profile">
+
+            <label class="grid gap-1">
+                <span class="text-xs text-slate-400">Full name</span>
+                <input name="full_name" value="{{ profile_data.full_name }}" placeholder="Full name" class="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2">
+            </label>
+            <label class="grid gap-1">
+                <span class="text-xs text-slate-400">Contact email</span>
+                <input name="email_contact" type="email" value="{{ profile_data.email_contact }}" placeholder="Contact email" class="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2">
+            </label>
+            <label class="grid gap-1">
+                <span class="text-xs text-slate-400">Phone</span>
+                <input name="phone" value="{{ profile_data.phone }}" placeholder="Phone" class="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2">
+            </label>
+            <label class="grid gap-1">
+                <span class="text-xs text-slate-400">Organization</span>
+                <input name="organization" value="{{ profile_data.organization }}" placeholder="Organization" class="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2">
+            </label>
+            <label class="grid gap-1">
+                <span class="text-xs text-slate-400">Designation/Role</span>
+                <input name="designation" value="{{ profile_data.designation }}" placeholder="Designation/Role" class="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2">
+            </label>
+            <label class="grid gap-1">
+                <span class="text-xs text-slate-400">Government/Identity ID</span>
+                <input name="gov_id" value="{{ profile_data.gov_id }}" placeholder="Government/Identity ID" class="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2">
+            </label>
+            <label class="grid gap-1 md:col-span-2">
+                <span class="text-xs text-slate-400">Address</span>
+                <textarea name="address" rows="3" placeholder="Address" class="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2">{{ profile_data.address }}</textarea>
+            </label>
+
+            <button class="mt-2 rounded-lg bg-emerald-400 px-4 py-2 font-semibold text-slate-900 hover:bg-emerald-300 md:col-span-2">
+                Save Encrypted Profile
+            </button>
+        </form>
+    {% else %}
+        <div class="mt-5 grid gap-3 text-sm md:grid-cols-2">
+            <div class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-3">
+                <p class="text-xs text-slate-400">Full name</p>
+                <p class="text-slate-200">{{ profile_data.full_name or "-" }}</p>
+            </div>
+            <div class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-3">
+                <p class="text-xs text-slate-400">Contact email</p>
+                <p class="text-slate-200">{{ profile_data.email_contact or "-" }}</p>
+            </div>
+            <div class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-3">
+                <p class="text-xs text-slate-400">Phone</p>
+                <p class="text-slate-200">{{ profile_data.phone or "-" }}</p>
+            </div>
+            <div class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-3">
+                <p class="text-xs text-slate-400">Organization</p>
+                <p class="text-slate-200">{{ profile_data.organization or "-" }}</p>
+            </div>
+            <div class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-3">
+                <p class="text-xs text-slate-400">Designation/Role</p>
+                <p class="text-slate-200">{{ profile_data.designation or "-" }}</p>
+            </div>
+            <div class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-3">
+                <p class="text-xs text-slate-400">Government/Identity ID</p>
+                <p class="text-slate-200">{{ profile_data.gov_id or "-" }}</p>
+            </div>
+            <div class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-3 md:col-span-2">
+                <p class="text-xs text-slate-400">Address</p>
+                <p class="text-slate-200">{{ profile_data.address or "-" }}</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="mt-6 rounded-2xl border border-cyan-400/20 bg-slate-900/40 p-4">
+        <h2 class="text-lg font-semibold text-cyan-200">Authentication Security</h2>
+        <div class="mt-3 grid gap-3 text-sm md:grid-cols-2">
+            <div class="rounded-lg border border-slate-700/40 bg-slate-900/50 p-3">
+                <p class="text-xs text-slate-400">Email Verification</p>
+                {% if email_verified %}
+                    <p class="text-emerald-200">Verified</p>
+                {% else %}
+                    <p class="text-amber-200">Pending Verification</p>
+                    <a href="{{ url_for('auth.resend_verification') }}" class="mt-2 inline-flex chip-link">Resend Verification</a>
+                {% endif %}
+            </div>
+            <div class="rounded-lg border border-slate-700/40 bg-slate-900/50 p-3">
+                <p class="text-xs text-slate-400">Two-Factor Authentication</p>
+                {% if not two_factor_feature_enabled %}
+                    <p class="text-amber-200">Disabled by platform policy</p>
+                {% else %}
+                    {% if two_factor_enabled %}
+                        <p class="text-emerald-200">Enabled</p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <a href="{{ url_for('auth.setup_two_factor', rotate=1) }}" class="chip-link">Rotate Secret</a>
+                            <form method="POST" action="{{ url_for('auth.disable_two_factor') }}" class="flex flex-wrap gap-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="password" name="current_password" placeholder="Current password" required class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                                <input name="otp_code" placeholder="2FA code" required maxlength="6" class="w-24 rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                                <button class="chip-link !text-rose-200 !border-rose-400/30">Disable 2FA</button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <p class="text-amber-200">Disabled</p>
+                        <a href="{{ url_for('auth.setup_two_factor') }}" class="mt-2 inline-flex chip-link !text-emerald-200 !border-emerald-400/40">Enable 2FA</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        {% if session.get('role') != 'admin' %}
+            <div class="mt-4 rounded-lg border border-violet-400/20 bg-violet-500/5 p-3 text-xs">
+                <p class="text-violet-200">Delegated Admin Access</p>
+                {% if delegated_scopes and delegated_until %}
+                    <p class="mt-1 text-emerald-200">Active</p>
+                    <p class="text-slate-400">Scopes: {{ delegated_scopes|join(', ') }}</p>
+                    <p class="text-slate-400">Until: {{ delegated_until[:19] }} UTC | Approved by: {{ delegated_by or "-" }}</p>
+                    {% if delegated_note %}
+                        <p class="text-slate-500">Note: {{ delegated_note }}</p>
+                    {% endif %}
+                {% else %}
+                    <p class="mt-1 text-amber-200">Not active</p>
+                    {% if two_factor_feature_enabled %}
+                        <p class="text-slate-400">Submit manual 2FA request for admin verification when you need delegated tasks.</p>
+                    {% else %}
+                        <p class="text-slate-400">2FA workflow is disabled. Contact admin directly for delegated access.</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            {% if two_factor_feature_enabled %}
+                <div id="manual-2fa-request" class="mt-4 rounded-lg border border-amber-400/20 bg-amber-500/5 p-3 text-xs">
+                    <p class="text-amber-200">Manual 2FA Request to Admin</p>
+                    <p class="mt-1 text-slate-400">Manager/CEO workflow: submit your current 2FA code so admin can manually review and grant delegated scopes.</p>
+
+                    {% if email_verified %}
+                        <form method="POST" action="{{ url_for('main.request_manual_2fa_review') }}" class="mt-2 grid gap-2 md:grid-cols-3">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input name="otp_code" placeholder="{% if two_factor_enabled %}Current 2FA code{% else %}2FA code (optional){% endif %}" maxlength="6" {% if two_factor_enabled %}required{% endif %} class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                            <input name="reason" placeholder="Reason for delegated access" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs md:col-span-2">
+                            <button class="rounded-lg bg-amber-400 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-amber-300 md:col-span-3">Submit Manual 2FA Review</button>
+                        </form>
+                        {% if not two_factor_enabled %}
+                            <p class="mt-1 text-amber-200">2FA is not enabled on your account. Admin approval requires Force Approve with manual identity checks.</p>
+                        {% endif %}
+                        <p class="mt-1 text-slate-500">Open requests: {{ pending_manual_2fa_reviews }}</p>
+                    {% else %}
+                        <p class="mt-2 text-rose-300">This request form unlocks after email verification.</p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            {% if not email_verified %}
+                                <a href="{{ url_for('auth.resend_verification') }}" class="chip-link !text-amber-200 !border-amber-400/30">Verify Email First</a>
+                            {% endif %}
+                            <a href="{{ url_for('auth.setup_two_factor') }}" class="chip-link !text-emerald-200 !border-emerald-400/30">Enable 2FA (Recommended)</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-4 rounded-lg border border-slate-700/40 bg-slate-900/50 p-3 text-xs">
+                    <p class="text-slate-300">Recent Manual 2FA Reviews</p>
+                    <ul class="mt-2 space-y-1">
+                        {% for req in recent_manual_2fa_reviews %}
+                            <li class="rounded border border-slate-700/30 bg-slate-900/40 p-2">
+                                <p class="font-mono text-violet-200">{{ req.request_id }} | {{ req.status|upper }}</p>
+                                <p class="text-slate-400">{{ req.submitted_at[:19] }} UTC | code {{ req.otp_code }}</p>
+                                {% if req.otp_validated == "1" %}
+                                    <p class="text-emerald-300">OTP validated at {{ req.otp_validated_at[:19] if req.otp_validated_at else req.submitted_at[:19] }} UTC</p>
+                                {% else %}
+                                    <p class="text-rose-300">OTP not validated.</p>
+                                {% endif %}
+                                {% if req.decision_note %}
+                                    <p class="text-slate-500">{{ req.decision_note }}</p>
+                                {% endif %}
+                            </li>
+                        {% else %}
+                            <li class="text-slate-500">No manual 2FA review history.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="mt-5 flex flex-wrap gap-2">
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('main.admin_dashboard') }}" class="chip-link">Back to SOC Dashboard</a>
+        {% else %}
+            <a href="{{ url_for('main.user_dashboard', user_id=session.get('user_id')) }}" class="chip-link">Back to User Dashboard</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Record Detail | SecureChain{% endblock %}
+{% block content %}
+<section class="rounded-3xl border border-cyan-400/20 bg-slate-900/60 p-6 shadow-glow backdrop-blur-xl">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <p class="font-mono text-xs text-cyan-300">{{ record.verification_id }}</p>
+            <h1 class="text-2xl font-bold text-cyan-200">{{ record.original_filename }}</h1>
+            <p class="mt-1 text-sm text-slate-300">Owner: {{ record.owner_username }} ({{ record.owner_id }})</p>
+        </div>
+        <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3 text-xs">
+            <p class="text-slate-400">Current Status</p>
+            {% if record.status == "quarantined" %}
+                <p class="font-semibold text-amber-300">Quarantined</p>
+            {% else %}
+                <p class="font-semibold text-emerald-300">Active</p>
+            {% endif %}
+            <p class="mt-1 text-slate-400">Quick Risk: {{ record.quick_risk }}%</p>
+            <div class="mt-3">
+                {% if watchlist_item %}
+                    <p class="text-[11px] text-violet-200">Watchlist note: {{ watchlist_item.note }}</p>
+                    <form method="POST" action="{{ url_for('main.watchlist_remove', verification_id=record.verification_id) }}" class="mt-1">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="chip-link !text-rose-200 !border-rose-400/30">Remove from Watchlist</button>
+                    </form>
+                {% else %}
+                    <form method="POST" action="{{ url_for('main.watchlist_add', verification_id=record.verification_id) }}" class="mt-1 space-y-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input name="note" maxlength="120" placeholder="Watchlist note (optional)" class="w-full rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                        <button class="chip-link !text-violet-200 !border-violet-400/30">Add to Watchlist</button>
+                    </form>
+                {% endif %}
+            </div>
+            {% if record.status == "quarantined" %}
+                <details class="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 p-2">
+                    <summary class="cursor-pointer text-[11px] text-amber-200">Request Quarantine Review</summary>
+                    <form method="POST" action="{{ url_for('main.create_review_request', verification_id=record.verification_id) }}" class="mt-2 grid gap-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <textarea name="reason" rows="2" maxlength="220" placeholder="Explain why this file should be reviewed..." class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs"></textarea>
+                        <button class="chip-link !text-amber-200 !border-amber-400/40">Submit Review Request</button>
+                    </form>
+                </details>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-3">
+    <article class="rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5 xl:col-span-2">
+        <h2 class="text-lg font-semibold text-violet-200">Blockchain Timeline</h2>
+        <div class="mt-4 space-y-2 text-xs">
+            {% for block in blocks %}
+                <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-cyan-200">Block #{{ block.block_number }} | {{ block.record_type }}</p>
+                    <p class="text-slate-400">{{ block.timestamp[:19] }} UTC</p>
+                    <p class="text-slate-400">Prev: {{ block.previous_hash[:18] }}... | Hash: {{ block.block_hash[:18] }}...</p>
+                </div>
+            {% else %}
+                <p class="text-slate-400">No block timeline available.</p>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-fuchsia-200">AI Analysis</h2>
+        {% if analysis.status == "complete" %}
+            <p class="mt-3 text-sm text-slate-300">Risk: <span class="text-rose-300">{{ analysis.risk_percentage }}%</span></p>
+            <p class="text-sm text-slate-300">Authenticity: <span class="text-emerald-300">{{ analysis.authenticity_score }}%</span></p>
+            <p class="mt-2 text-xs text-slate-400">{{ analysis.security_summary }}</p>
+            <p class="mt-2 text-xs text-slate-400">{{ analysis.explanation }}</p>
+        {% else %}
+            <p class="mt-3 text-sm text-slate-400">Analysis is still processing.</p>
+        {% endif %}
+    </article>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-2">
+    <article class="rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-cyan-200">Version History</h2>
+        <ul class="mt-4 space-y-2 text-xs">
+            {% for version in versions %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-cyan-200">v{{ version.version }} | {{ version.verification_id }}</p>
+                    <p class="text-slate-400">{{ version.uploaded_at[:19] }} UTC</p>
+                </li>
+            {% else %}
+                <li class="text-slate-400">No version history found.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-violet-200">Ownership Transfer Log</h2>
+        <ul class="mt-4 space-y-2 text-xs">
+            {% for transfer in transfers %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="text-slate-300">{{ transfer.from_owner_username }} -> {{ transfer.to_owner_username }}</p>
+                    <p class="text-slate-400">{{ transfer.timestamp[:19] }} UTC</p>
+                    <p class="text-slate-500">{{ transfer.note }}</p>
+                </li>
+            {% else %}
+                <li class="text-slate-400">No ownership transfer activity.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-2">
+    <article class="rounded-2xl border border-fuchsia-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-fuchsia-200">Incident Management</h2>
+        <form method="POST" action="{{ url_for('main.create_incident', verification_id=record.verification_id) }}" class="mt-3 grid gap-2 text-xs">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="grid grid-cols-2 gap-2">
+                <input name="title" placeholder="Incident title" required class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+                <select name="severity" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+            </div>
+            <textarea name="description" rows="2" placeholder="Incident description" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1"></textarea>
+            <button class="rounded-lg bg-fuchsia-400 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-fuchsia-300">Create Incident</button>
+        </form>
+
+        <ul class="mt-4 space-y-2 text-xs">
+            {% for incident in incidents %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-fuchsia-200">{{ incident.incident_id }} | {{ incident.severity|upper }}</p>
+                    <p class="text-slate-300">{{ incident.title }}</p>
+                    <p class="text-slate-500">Status: {{ incident.status }} | Updated: {{ incident.updated_at[:19] }} UTC</p>
+                </li>
+            {% else %}
+                <li class="text-slate-400">No incidents for this record.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="rounded-2xl border border-cyan-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-cyan-200">Evidence Notes</h2>
+        <form method="POST" action="{{ url_for('main.add_record_note', verification_id=record.verification_id) }}" class="mt-3 grid gap-2 text-xs">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <textarea name="note_text" rows="2" maxlength="260" placeholder="Add legal/compliance evidence note..." required class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1"></textarea>
+            <button class="rounded-lg bg-cyan-400 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-cyan-300">Add Note</button>
+        </form>
+        <ul class="mt-4 space-y-2 text-xs">
+            {% for note in notes %}
+                <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="text-slate-300">{{ note.note_text }}</p>
+                    <p class="text-slate-500">By {{ note.author_username }} | {{ note.created_at[:19] }} UTC</p>
+                </li>
+            {% else %}
+                <li class="text-slate-400">No notes yet.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+
+<section class="mt-6 rounded-2xl border border-amber-400/20 bg-slate-900/50 p-5">
+    <h2 class="text-lg font-semibold text-amber-200">Quarantine Review Requests</h2>
+    <ul class="mt-4 space-y-2 text-xs">
+        {% for request in review_requests %}
+            <li class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <p class="font-mono text-amber-200">{{ request.request_id }} | {{ request.status|upper }}</p>
+                    <p class="text-slate-500">{{ request.updated_at[:19] }} UTC</p>
+                </div>
+                <p class="text-slate-300">Requester: {{ request.requester_username }} ({{ request.requester_id }})</p>
+                <p class="text-slate-400">Reason: {{ request.reason }}</p>
+                {% if request.admin_note %}
+                    <p class="text-slate-500">Admin: {{ request.admin_username or request.admin_id }} | {{ request.admin_note }}</p>
+                {% endif %}
+            </li>
+        {% else %}
+            <li class="text-slate-400">No review requests for this record.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

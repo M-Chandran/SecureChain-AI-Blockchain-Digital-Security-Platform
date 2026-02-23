@@ -1,0 +1,10 @@
+{
+  "risk_alert_threshold": 60,
+  "quarantine_threshold": 80,
+  "anomaly_alert_threshold": 70,
+  "max_daily_uploads_per_user": 120,
+  "login_max_attempts": 5,
+  "login_window_seconds": 600,
+  "login_lock_seconds": 900,
+  "public_certificate_enabled": true
+}

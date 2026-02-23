@@ -1,0 +1,31 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+
+# Environment
+.env
+
+# Generated data (keep structure, ignore contents)
+app/uploads/*
+!app/uploads/.gitkeep
+app/static/qrcodes/*
+!app/static/qrcodes/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files  
+.DS_Store
+
+# Fernet key (auto-generated)
+app/data/.fernet.key
+
+# Log files (optional - uncomment if needed)
+# app/data/*.log

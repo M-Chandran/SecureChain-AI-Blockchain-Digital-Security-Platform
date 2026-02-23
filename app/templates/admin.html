@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel | SecureChain{% endblock %}
+{% block content %}
+<section class="rounded-3xl border border-amber-400/20 bg-slate-900/60 p-6 backdrop-blur-xl">
+    <h1 class="text-2xl font-bold text-amber-200">Admin Control Panel</h1>
+    <p class="mt-2 text-sm text-slate-300">Manage user access, monitor audit logs, and review ownership transfers.</p>
+</section>
+
+<section class="mt-6 grid gap-4 md:grid-cols-4">
+    <article class="rounded-2xl border border-rose-400/20 bg-slate-900/50 p-4">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Open Incidents</p>
+        <p class="mt-2 text-2xl font-bold text-rose-300">{{ open_incidents }}</p>
+        <p class="mt-1 text-xs text-slate-500">Active Admins: {{ active_admin_count }}</p>
+    </article>
+    <article class="rounded-2xl border border-cyan-400/20 bg-slate-900/50 p-4">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Latest Integrity Scan</p>
+        {% if latest_scan %}
+            <p class="mt-2 text-sm text-cyan-200">{{ latest_scan.run_at[:19] }} UTC</p>
+            <p class="text-xs text-slate-400">Failed: {{ latest_scan.failed_records }} / {{ latest_scan.total_records }}</p>
+        {% else %}
+            <p class="mt-2 text-sm text-slate-400">No scans executed yet.</p>
+        {% endif %}
+    </article>
+    <article class="rounded-2xl border border-fuchsia-400/20 bg-slate-900/50 p-4">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Integrity Controls</p>
+        <div class="mt-2 flex flex-wrap gap-2">
+            <form method="POST" action="{{ url_for('main.run_integrity_scan') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="chip-link !text-cyan-200 !border-cyan-400/30">Run Deep Scan</button>
+            </form>
+            <a href="{{ url_for('main.integrity_center') }}" class="chip-link !text-fuchsia-200 !border-fuchsia-400/30">Open Integrity Center</a>
+            <form method="POST" action="{{ url_for('main.admin_export_backup') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="chip-link !text-emerald-200 !border-emerald-400/30">Export Backup ZIP</button>
+            </form>
+        </div>
+    </article>
+    <article class="rounded-2xl border border-violet-400/20 bg-slate-900/50 p-4">
+        {% if config.get('ENABLE_2FA', False) %}
+            <p class="text-xs uppercase tracking-wide text-slate-400">Manual 2FA Queue</p>
+            <p class="mt-2 text-2xl font-bold text-violet-300">{{ open_two_factor_requests }}</p>
+            <p class="mt-1 text-xs text-slate-500">Unverified users: {{ unverified_users }}</p>
+        {% else %}
+            <p class="text-xs uppercase tracking-wide text-slate-400">Delegated Users</p>
+            <p class="mt-2 text-2xl font-bold text-violet-300">{{ delegated_users|length }}</p>
+            <p class="mt-1 text-xs text-slate-500">2FA workflow disabled</p>
+        {% endif %}
+    </article>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-2">
+    <article class="rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-cyan-200">Users</h2>
+        <div class="mt-4 overflow-x-auto rounded-xl border border-slate-700/40">
+            <table class="min-w-full text-left text-xs text-slate-200">
+                <thead class="bg-slate-800/70 uppercase text-slate-400">
+                    <tr>
+                        <th class="px-3 py-2">User</th>
+                        <th class="px-3 py-2">Role</th>
+                        <th class="px-3 py-2">Last Login</th>
+                        <th class="px-3 py-2">Status</th>
+                        <th class="px-3 py-2">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/50">
+                    {% for user in users %}
+                        <tr>
+                            <td class="px-3 py-2">
+                                <p class="font-medium">{{ user.username }}</p>
+                                <p class="text-[11px] text-slate-400">{{ user.email }}</p>
+                                <p class="text-[11px] text-slate-500">Email Verified: {{ "Yes" if user.email_verified == "1" else "No" }}</p>
+                            </td>
+                            <td class="px-3 py-2">{{ user.role }}</td>
+                            <td class="px-3 py-2">{{ user.last_login[:19] ~ " UTC" if user.last_login else "-" }}</td>
+                            <td class="px-3 py-2">
+                                <span class="rounded-full px-2 py-1 text-[11px] {% if user.account_status == 'active' %}bg-emerald-500/20 text-emerald-200{% else %}bg-rose-500/20 text-rose-200{% endif %}">
+                                    {{ user.account_status }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2">
+                                <div class="flex flex-wrap gap-2">
+                                    {% if user.username != 'admin' %}
+                                        <form method="POST" action="{{ url_for('main.admin_user_status', user_id=user.user_id) }}" class="flex items-center gap-2">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            {% if user.account_status == 'active' %}
+                                                <input type="hidden" name="account_status" value="locked">
+                                                <button class="chip-link !text-rose-200 !border-rose-400/30">Lock</button>
+                                            {% else %}
+                                                <input type="hidden" name="account_status" value="active">
+                                                <button class="chip-link !text-emerald-200 !border-emerald-400/30">Activate</button>
+                                            {% endif %}
+                                        </form>
+                                        <form method="POST" action="{{ url_for('main.admin_user_role', user_id=user.user_id) }}" class="flex items-center gap-2">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            {% if user.role == 'admin' %}
+                                                <input type="hidden" name="role" value="user">
+                                                <button class="chip-link !text-amber-200 !border-amber-400/30">Set User</button>
+                                            {% else %}
+                                                <input type="hidden" name="role" value="admin">
+                                                <button class="chip-link !text-fuchsia-200 !border-fuchsia-400/30">Make Admin</button>
+                                            {% endif %}
+                                        </form>
+                                        <form method="POST" action="{{ url_for('main.admin_user_email_verify', user_id=user.user_id) }}" class="flex items-center gap-2">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            {% if user.email_verified == '1' %}
+                                                <input type="hidden" name="email_verified" value="0">
+                                                <button class="chip-link !text-amber-200 !border-amber-400/30">Mark Unverified</button>
+                                            {% else %}
+                                                <input type="hidden" name="email_verified" value="1">
+                                                <button class="chip-link !text-emerald-200 !border-emerald-400/30">Verify Email</button>
+                                            {% endif %}
+                                        </form>
+                                    {% else %}
+                                        <span class="text-[11px] text-slate-500">Primary admin protected</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-violet-200">Ownership Transfer Record</h2>
+        <div class="mt-4 space-y-2 text-xs">
+            {% for transfer in transfers %}
+                <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-violet-200">{{ transfer.verification_id }}</p>
+                    <p class="text-slate-300">From {{ transfer.from_owner_username or transfer.from_owner_id }} to {{ transfer.to_owner_username }} ({{ transfer.to_owner_id }})</p>
+                    <p class="text-slate-400">{{ transfer.timestamp[:19] }} UTC | {{ transfer.note }}</p>
+                </div>
+            {% else %}
+                <p class="text-slate-400">No ownership transfers recorded.</p>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-2">
+    {% if config.get('ENABLE_2FA', False) %}
+        <article class="rounded-2xl border border-violet-400/20 bg-slate-900/50 p-5">
+            <h2 class="text-lg font-semibold text-violet-200">Manual 2FA Review Queue</h2>
+            <div class="mt-4 space-y-2 text-xs">
+                {% for req in two_factor_queue %}
+                    <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                        <p class="font-mono text-violet-200">{{ req.request_id }} | {{ req.username }} ({{ req.user_id }})</p>
+                        <p class="text-slate-300">Code: <span class="font-mono text-amber-200">{{ req.otp_code }}</span></p>
+                        {% if req.otp_validated == "1" %}
+                            <p class="text-emerald-300">System OTP Validation: Verified at {{ req.otp_validated_at[:19] if req.otp_validated_at else req.submitted_at[:19] }} UTC</p>
+                        {% else %}
+                            <p class="text-rose-300">System OTP Validation: Not verified (request must be resubmitted).</p>
+                        {% endif %}
+                        <p class="text-slate-500">{{ req.reason }} | {{ req.submitted_at[:19] }} UTC</p>
+                        <form method="POST" action="{{ url_for('main.admin_two_factor_review_decision', request_id=req.request_id) }}" class="mt-2 grid gap-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="grid gap-2 md:grid-cols-2">
+                                <input name="delegated_scopes" value="verify_batch,compare_lab" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                                <input name="delegated_hours" type="number" min="1" max="72" value="8" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                            </div>
+                            <input name="admin_note" placeholder="Admin note (required for force approve, min 12 chars)" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                            <label class="flex items-center gap-2 text-[11px] text-amber-200">
+                                <input type="checkbox" name="force_ack" value="1" class="h-3.5 w-3.5 rounded border-slate-500 bg-slate-900">
+                                Confirm emergency override for Force Approve.
+                            </label>
+                            <div class="flex flex-wrap gap-2">
+                                <button name="decision" value="approved" class="chip-link !text-emerald-200 !border-emerald-400/30">Approve + Delegate (Validated)</button>
+                                <button name="decision" value="force_approved" class="chip-link !text-amber-200 !border-amber-400/30">Force Approve</button>
+                                <button name="decision" value="rejected" class="chip-link !text-rose-200 !border-rose-400/30">Reject</button>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <p class="text-slate-400">No open manual 2FA requests.</p>
+                {% endfor %}
+            </div>
+        </article>
+    {% endif %}
+
+    <article class="rounded-2xl border border-emerald-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-emerald-200">Delegated User Access</h2>
+        <div class="mt-4 space-y-2 text-xs">
+            {% for user in delegated_users %}
+                <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-emerald-200">{{ user.username }} ({{ user.user_id }})</p>
+                    <p class="text-slate-300">Scopes: {{ user.delegated_admin_scopes or "-" }}</p>
+                    <p class="text-slate-500">Until: {{ user.delegated_admin_until[:19] if user.delegated_admin_until else "-" }} UTC</p>
+                    <form method="POST" action="{{ url_for('main.admin_revoke_delegation', user_id=user.user_id) }}" class="mt-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="chip-link !text-rose-200 !border-rose-400/30">Revoke</button>
+                    </form>
+                </div>
+            {% else %}
+                <p class="text-slate-400">No delegated users.</p>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<section class="mt-6 rounded-2xl border border-fuchsia-400/20 bg-slate-900/50 p-5">
+    <h2 class="text-lg font-semibold text-fuchsia-200">Incident Case Management</h2>
+    <div class="mt-4 space-y-2 text-xs">
+        {% for incident in incidents %}
+            <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <p class="font-mono text-fuchsia-200">{{ incident.incident_id }} | {{ incident.severity|upper }} | VID {{ incident.verification_id }}</p>
+                    <p class="text-slate-500">{{ incident.updated_at[:19] }} UTC</p>
+                </div>
+                <p class="text-slate-300">{{ incident.title }}</p>
+                <p class="text-slate-500">{{ incident.description }}</p>
+                <form method="POST" action="{{ url_for('main.update_incident_status', incident_id=incident.incident_id) }}" class="mt-2 flex flex-wrap gap-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="status" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                        <option value="open" {% if incident.status == 'open' %}selected{% endif %}>Open</option>
+                        <option value="in_review" {% if incident.status == 'in_review' %}selected{% endif %}>In Review</option>
+                        <option value="resolved" {% if incident.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="closed" {% if incident.status == 'closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                    <input name="resolution_note" value="{{ incident.resolution_note }}" placeholder="Resolution note (optional)" class="min-w-0 flex-1 rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-xs">
+                    <button class="chip-link !text-fuchsia-200 !border-fuchsia-400/30">Update</button>
+                </form>
+            </div>
+        {% else %}
+            <p class="text-slate-400">No incidents created yet.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-2">
+    <article class="rounded-2xl border border-cyan-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-cyan-200">Security Policy Center</h2>
+        <form method="POST" action="{{ url_for('main.admin_update_policy') }}" class="mt-4 grid gap-3 text-xs">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-slate-400">Risk Alert Threshold (%)</label>
+                <input name="risk_alert_threshold" type="number" min="1" max="99" value="{{ policy.risk_alert_threshold }}" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-slate-400">Quarantine Threshold (%)</label>
+                <input name="quarantine_threshold" type="number" min="1" max="99" value="{{ policy.quarantine_threshold }}" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-slate-400">Anomaly Alert Threshold (%)</label>
+                <input name="anomaly_alert_threshold" type="number" min="1" max="99" value="{{ policy.anomaly_alert_threshold }}" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-slate-400">Max Daily Uploads/User</label>
+                <input name="max_daily_uploads_per_user" type="number" min="1" max="10000" value="{{ policy.max_daily_uploads_per_user }}" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-slate-400">Login Max Attempts</label>
+                <input name="login_max_attempts" type="number" min="2" max="15" value="{{ policy.login_max_attempts }}" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-slate-400">Login Window (seconds)</label>
+                <input name="login_window_seconds" type="number" min="30" max="86400" value="{{ policy.login_window_seconds }}" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-slate-400">Login Lock Duration (seconds)</label>
+                <input name="login_lock_seconds" type="number" min="30" max="86400" value="{{ policy.login_lock_seconds }}" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+            </div>
+            <label class="mt-1 inline-flex items-center gap-2 text-slate-300">
+                <input type="checkbox" name="public_certificate_enabled" {% if policy.public_certificate_enabled %}checked{% endif %}>
+                Allow public certificate downloads
+            </label>
+            <button class="mt-2 rounded-lg bg-cyan-400 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-cyan-300">Save Policy</button>
+        </form>
+    </article>
+
+    <article class="rounded-2xl border border-violet-400/20 bg-slate-900/50 p-5">
+        <h2 class="text-lg font-semibold text-violet-200">API Key Integration Center</h2>
+        {% if new_api_key_token %}
+            <div class="mt-3 rounded-lg border border-emerald-400/30 bg-emerald-500/10 p-3 text-xs text-emerald-100">
+                New key (copy now): <span class="font-mono break-all">{{ new_api_key_token }}</span>
+            </div>
+        {% endif %}
+        <form method="POST" action="{{ url_for('main.admin_create_api_key') }}" class="mt-4 grid gap-2 text-xs">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input name="label" placeholder="Key label (e.g., Legal ERP Gateway)" required class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+            <input name="scopes" value="verify:read" class="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1">
+            <button class="rounded-lg bg-violet-400 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-violet-300">Generate API Key</button>
+        </form>
+
+        <div class="mt-4 space-y-2 text-xs">
+            {% for key in api_keys %}
+                <div class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-3">
+                    <p class="font-mono text-violet-200">{{ key.key_id }} - {{ key.label }}</p>
+                    <p class="text-slate-400">Scopes: {{ key.scopes }} | Status: {{ key.status }}</p>
+                    <p class="text-slate-500">Created {{ key.created_at[:19] }} UTC | Last used {{ key.last_used[:19] ~ " UTC" if key.last_used else "Never" }}</p>
+                    {% if key.status == 'active' %}
+                        <form method="POST" action="{{ url_for('main.admin_revoke_api_key', key_id=key.key_id) }}" class="mt-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="chip-link !text-rose-200 !border-rose-400/30">Revoke</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p class="text-slate-400">No API keys created yet.</p>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<section class="mt-6 rounded-2xl border border-slate-700/40 bg-slate-900/50 p-5">
+    <h2 class="text-lg font-semibold text-cyan-200">Audit Trail Logs</h2>
+    <div class="mt-4 max-h-[360px] overflow-y-auto space-y-2 text-xs">
+        {% for activity in activities %}
+            <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-3">
+                <p class="font-mono text-slate-300">{{ activity.timestamp[:19] }} UTC</p>
+                <p class="text-cyan-200">{{ activity.action }} <span class="text-slate-400">({{ activity.status }})</span></p>
+                <p class="text-slate-400">User: {{ activity.user_id }} | IP: {{ activity.ip_address }}</p>
+                <p class="text-slate-400">{{ activity.details }}</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

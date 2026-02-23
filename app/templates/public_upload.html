@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Public Upload Intake | SecureChain{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-5xl rounded-3xl border border-cyan-400/25 bg-slate-900/60 p-6 shadow-glow backdrop-blur-xl">
+    <h1 class="text-2xl font-bold text-cyan-200">Public Document Upload</h1>
+    <p class="mt-2 text-sm text-slate-300">
+        Submit documents without login. Every upload is encrypted and queued for admin verification before blockchain approval.
+    </p>
+
+    <form method="POST" enctype="multipart/form-data" class="mt-5 grid gap-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="grid gap-3 md:grid-cols-2">
+            <input
+                name="submitter_name"
+                placeholder="Your name"
+                class="rounded-xl border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm outline-none ring-cyan-300 focus:ring"
+            >
+            <input
+                type="email"
+                name="submitter_email"
+                placeholder="Your email (optional)"
+                class="rounded-xl border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm outline-none ring-cyan-300 focus:ring"
+            >
+        </div>
+        <input
+            name="folder"
+            value="public/intake"
+            placeholder="Folder hint (optional)"
+            class="rounded-xl border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm outline-none ring-cyan-300 focus:ring"
+        >
+        <input
+            type="file"
+            name="document"
+            multiple
+            required
+            class="rounded-xl border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-300 file:px-3 file:py-1 file:font-semibold file:text-slate-900"
+        >
+        <div class="flex flex-wrap gap-2">
+            <button class="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-300">
+                Submit Public Upload
+            </button>
+            <a href="{{ url_for('main.public_verify') }}" class="rounded-xl border border-violet-400/40 px-4 py-2 text-sm font-semibold text-violet-200 hover:bg-violet-500/20">
+                Public Verify
+            </a>
+        </div>
+    </form>
+</section>
+
+<section class="mx-auto mt-6 max-w-5xl grid gap-4 md:grid-cols-3">
+    <article class="glass-card">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Step 1</p>
+        <p class="mt-2 text-sm text-slate-200">Upload one or more documents (max 12 per request).</p>
+    </article>
+    <article class="glass-card">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Step 2</p>
+        <p class="mt-2 text-sm text-slate-200">Admin reviews each file in SOC verification queue.</p>
+    </article>
+    <article class="glass-card">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Step 3</p>
+        <p class="mt-2 text-sm text-slate-200">Approved files get a verification ID for public authenticity checks.</p>
+    </article>
+</section>
+{% endblock %}

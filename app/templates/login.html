@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Login | SecureChain{% endblock %}
+{% block content %}
+<section class="authv2-shell p-5 md:p-7">
+    <div class="authv2-frame">
+        <aside class="authv2-orbit">
+            <p class="authv2-kicker">Command Access</p>
+            <h1 class="authv2-title">Choose Your Security Lane</h1>
+            <p class="authv2-copy">
+                Access control is split into isolated role lanes. Enter through the right portal to keep operational
+                boundaries, policy checks, and audit traces clean.
+            </p>
+            <div class="authv2-metrics">
+                <div class="authv2-metric">
+                    <p class="authv2-metric-key">Session Isolation</p>
+                    <p class="authv2-metric-value">Admin and user surfaces run with separate route guardrails.</p>
+                </div>
+                <div class="authv2-metric">
+                    <p class="authv2-metric-key">Live Observability</p>
+                    <p class="authv2-metric-value">Authentication events stream into monitoring and incident workflows.</p>
+                </div>
+                <div class="authv2-metric">
+                    <p class="authv2-metric-key">Credential Controls</p>
+                    <p class="authv2-metric-value">Password visibility toggle and role-specific validation rules.</p>
+                </div>
+                <div class="authv2-metric">
+                    <p class="authv2-metric-key">Recovery Ready</p>
+                    <p class="authv2-metric-value">Token reset, verification resend, and optional 2FA step-up.</p>
+                </div>
+            </div>
+            <div class="authv2-links">
+                <a href="{{ url_for('auth.signup') }}" class="authv2-mini">Create account</a>
+                <a href="{{ url_for('auth.reset_password') }}" class="authv2-mini">Reset password</a>
+                <a href="{{ url_for('auth.resend_verification') }}" class="authv2-mini">Resend verification</a>
+            </div>
+        </aside>
+
+        <div class="authv2-stacks authv2-stacks-login">
+            <article class="authv2-panel authv2-panel-admin">
+                <div class="authv2-head">
+                    <div>
+                        <p class="authv2-chip authv2-chip-admin">Admin Lane</p>
+                        <h2 class="authv2-panel-title">SOC and Governance Portal</h2>
+                    </div>
+                </div>
+                <form method="POST" class="mt-4 space-y-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="role_portal" value="admin">
+                    <div>
+                        <label class="authv2-label">Admin Username or Email</label>
+                        <input name="username" value="admin" required class="authv2-input authv2-input-admin">
+                    </div>
+                    <div>
+                        <label class="authv2-label">Password</label>
+                        <div class="authv2-input-wrap">
+                            <input id="admin-login-password" type="password" name="password" autocomplete="current-password" required class="authv2-input authv2-input-admin pr-16">
+                            <button
+                                type="button"
+                                data-password-toggle
+                                data-target="admin-login-password"
+                                aria-label="Toggle password visibility"
+                                aria-pressed="false"
+                                class="authv2-eye"
+                            >
+                                <span data-toggle-label>Show</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="authv2-cta authv2-cta-admin">Enter Admin Portal</button>
+                </form>
+                <p class="authv2-note authv2-note-admin">
+                    Demo: <span class="font-mono">admin</span> / <span class="font-mono">Admin@12345</span>
+                </p>
+            </article>
+
+            <article class="authv2-panel authv2-panel-user">
+                <div class="authv2-head">
+                    <div>
+                        <p class="authv2-chip authv2-chip-user">User Lane</p>
+                        <h2 class="authv2-panel-title">Verification Workspace Portal</h2>
+                    </div>
+                </div>
+                <form method="POST" class="mt-4 space-y-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="role_portal" value="user">
+                    <div>
+                        <label class="authv2-label">User Username or Email</label>
+                        <input name="username" value="user" required class="authv2-input">
+                    </div>
+                    <div>
+                        <label class="authv2-label">Password</label>
+                        <div class="authv2-input-wrap">
+                            <input id="user-login-password" type="password" name="password" autocomplete="current-password" required class="authv2-input pr-16">
+                            <button
+                                type="button"
+                                data-password-toggle
+                                data-target="user-login-password"
+                                aria-label="Toggle password visibility"
+                                aria-pressed="false"
+                                class="authv2-eye"
+                            >
+                                <span data-toggle-label>Show</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="authv2-cta authv2-cta-user">Enter User Portal</button>
+                </form>
+                <p class="authv2-note authv2-note-user">
+                    Demo: <span class="font-mono">user</span> / <span class="font-mono">User@12345</span>
+                </p>
+            </article>
+        </div>
+    </div>
+</section>
+{% endblock %}

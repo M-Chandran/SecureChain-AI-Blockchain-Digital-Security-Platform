@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Public Verification | SecureChain{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-4xl rounded-3xl border border-cyan-400/25 bg-slate-900/60 p-6 shadow-glow backdrop-blur-xl">
+    <h1 class="text-2xl font-bold text-cyan-200">Public Authenticity Verification</h1>
+    <p class="mt-2 text-sm text-slate-300">Enter a verification ID or scan a QR code to confirm document integrity without login.</p>
+
+    <form method="POST" class="mt-5 flex flex-wrap gap-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input
+            name="verification_id"
+            value="{{ verification_id }}"
+            placeholder="Example: A1B2C3D4E5F6"
+            class="flex-1 rounded-xl border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm outline-none ring-cyan-300 focus:ring"
+        >
+        <button class="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-300">Verify</button>
+        <button type="button" id="start-qr" class="rounded-xl border border-violet-400/40 px-4 py-2 text-sm font-semibold text-violet-200 hover:bg-violet-500/20">
+            Scan QR
+        </button>
+        <a href="{{ url_for('main.public_upload') }}" class="rounded-xl border border-emerald-400/40 px-4 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/20">
+            Public Upload
+        </a>
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('main.batch_verify') }}" class="rounded-xl border border-cyan-400/40 px-4 py-2 text-sm font-semibold text-cyan-200 hover:bg-cyan-500/20">
+                Admin Batch Verify
+            </a>
+        {% elif session.get('user_id') %}
+            <span class="rounded-xl border border-slate-600/60 px-4 py-2 text-sm font-semibold text-slate-400">
+                Batch Verify: Admin Only
+            </span>
+        {% else %}
+            <a href="{{ url_for('auth.login') }}" class="rounded-xl border border-cyan-400/40 px-4 py-2 text-sm font-semibold text-cyan-200 hover:bg-cyan-500/20">
+                Admin Batch Verify Login
+            </a>
+        {% endif %}
+    </form>
+
+    <div id="qr-reader-wrap" class="mt-4 hidden rounded-2xl border border-violet-400/30 bg-slate-900/50 p-4">
+        <p class="mb-2 text-xs text-slate-400">Allow camera access and scan the certificate QR.</p>
+        <div id="qr-reader" class="overflow-hidden rounded-xl"></div>
+        <button type="button" id="stop-qr" class="mt-3 rounded-lg border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:bg-slate-700/50">Stop Scanner</button>
+    </div>
+</section>
+
+{% if result %}
+<section class="mx-auto mt-6 max-w-4xl rounded-3xl border {% if result.exists and not result.tamper_detected %}border-emerald-400/30{% else %}border-rose-400/30{% endif %} bg-slate-900/60 p-6 backdrop-blur-xl">
+    {% if not result.exists %}
+        <h2 class="text-xl font-semibold text-rose-200">Record Not Found</h2>
+        <p class="mt-2 text-sm text-slate-300">No matching verification ID exists in this ledger.</p>
+    {% else %}
+        <h2 class="text-xl font-semibold {% if result.tamper_detected %}text-rose-200{% else %}text-emerald-200{% endif %}">
+            {% if result.tamper_detected %}Integrity Alert{% else %}Authentic Record Confirmed{% endif %}
+        </h2>
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-4 text-sm">
+                <p class="text-slate-400">Verification ID</p>
+                <p class="font-mono text-cyan-200">{{ result.record.verification_id }}</p>
+                <p class="mt-2 text-slate-400">Owner</p>
+                <p>{{ result.record.owner_username }} ({{ result.record.owner_id }})</p>
+                <p class="mt-2 text-slate-400">File</p>
+                <p>{{ result.record.original_filename }}</p>
+                <p class="mt-2 text-slate-400">Uploaded</p>
+                <p>{{ result.record.uploaded_at[:19] }} UTC</p>
+            </div>
+            <div class="rounded-xl border border-slate-700/40 bg-slate-900/40 p-4 text-sm">
+                <p class="text-slate-400">Blockchain Status</p>
+                <p class="{% if result.chain_valid %}text-emerald-300{% else %}text-rose-300{% endif %}">
+                    {{ "Healthy" if result.chain_valid else "Compromised" }}
+                </p>
+                <p class="mt-2 text-slate-400">Hash Match</p>
+                <p class="{% if result.integrity_match %}text-emerald-300{% else %}text-rose-300{% endif %}">
+                    {{ "Matched" if result.integrity_match else "Mismatch" }}
+                </p>
+                <p class="mt-2 text-slate-400">Risk Score</p>
+                <p>{{ result.risk_percentage }}{% if result.risk_percentage != "Pending" %}%{% endif %}</p>
+                <p class="mt-2 text-slate-400">Authenticity Score</p>
+                <p>{{ result.authenticity_score }}{% if result.authenticity_score != "Pending" %}%{% endif %}</p>
+            </div>
+        </div>
+
+        {% if result.issues %}
+            <div class="mt-4 rounded-xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-200">
+                <p class="font-semibold">Blockchain Integrity Issues</p>
+                <ul class="mt-2 list-disc pl-5 text-xs">
+                    {% for issue in result.issues %}
+                        <li>{{ issue }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="mt-4 flex flex-wrap gap-3">
+            <a href="{{ url_for('main.download_certificate', verification_id=result.record.verification_id) }}" class="rounded-xl border border-cyan-400/40 px-4 py-2 text-sm text-cyan-200 hover:bg-cyan-500/20">
+                Download Certificate
+            </a>
+            {% if result.record.share_link %}
+                <a href="{{ result.record.share_link }}" class="rounded-xl border border-violet-400/40 px-4 py-2 text-sm text-violet-200 hover:bg-violet-500/20">
+                    Open Share Link
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode" defer></script>
+<script>
+    window.SecureChain = window.SecureChain || {};
+    window.SecureChain.publicVerify = true;
+</script>
+{% endblock %}

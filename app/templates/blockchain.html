@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Blockchain Explorer | SecureChain{% endblock %}
+{% block content %}
+<section class="rounded-3xl border border-cyan-400/20 bg-slate-900/60 p-6 shadow-glow backdrop-blur-xl">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-cyan-200">Blockchain Explorer</h1>
+            <p class="mt-1 text-sm text-slate-300">Inspect every block used for document verification and ownership transfer.</p>
+        </div>
+        <div class="rounded-xl border {% if health.is_valid %}border-emerald-400/30 bg-emerald-500/10{% else %}border-rose-400/30 bg-rose-500/10{% endif %} px-4 py-2 text-sm">
+            <p>Status: <strong>{{ "Healthy" if health.is_valid else "Integrity Alert" }}</strong></p>
+            <p class="text-xs text-slate-300">Total Blocks: {{ health.total_blocks }}</p>
+        </div>
+    </div>
+    {% if not health.is_valid %}
+        <div class="mt-4 rounded-xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-200">
+            <p class="font-semibold">Detected Issues</p>
+            <ul class="mt-2 list-disc pl-5 text-xs">
+                {% for issue in health.issues %}
+                    <li>{{ issue }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</section>
+
+<section class="mt-6 space-y-3">
+    {% for block in chain %}
+        <article class="block-card rounded-2xl border border-slate-700/40 bg-slate-900/50 p-4">
+            <div class="grid gap-3 md:grid-cols-5">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-500">Block Number</p>
+                    <p class="font-mono text-cyan-200">#{{ block.block_number }}</p>
+                </div>
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-500">Record Type</p>
+                    <p class="text-slate-200">{{ block.record_type }}</p>
+                </div>
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-500">Verification ID</p>
+                    <p class="font-mono text-violet-200">{{ block.verification_id }}</p>
+                </div>
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-500">Owner ID</p>
+                    <p class="font-mono text-slate-200">{{ block.owner_id }}</p>
+                </div>
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-500">Timestamp</p>
+                    <p class="font-mono text-slate-200">{{ block.timestamp[:19] }} UTC</p>
+                </div>
+            </div>
+            <div class="mt-3 grid gap-2 text-[11px] text-slate-400 md:grid-cols-2">
+                <p>File Hash: <span class="font-mono text-slate-200">{{ block.file_hash }}</span></p>
+                <p>Previous Hash: <span class="font-mono text-slate-200">{{ block.previous_hash }}</span></p>
+                <p class="md:col-span-2">Block Hash: <span class="font-mono text-cyan-100">{{ block.block_hash }}</span></p>
+            </div>
+        </article>
+    {% endfor %}
+</section>
+{% endblock %}

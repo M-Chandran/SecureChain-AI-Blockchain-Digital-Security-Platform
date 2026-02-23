@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Resend Verification | SecureChain{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-lg rounded-3xl border border-cyan-400/30 bg-slate-900/60 p-8 shadow-glow backdrop-blur-2xl">
+    <h1 class="text-2xl font-bold text-cyan-200">Resend Email Verification</h1>
+    <p class="mt-2 text-sm text-slate-300">Issue a new verification token for a pending account.</p>
+    <form method="POST" class="mt-6 space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+            <label class="mb-1 block text-sm">Username or Email</label>
+            <input name="identity" required class="w-full rounded-xl border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm outline-none ring-cyan-300 focus:ring">
+        </div>
+        <button class="w-full rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-300">Resend Verification Link</button>
+    </form>
+    <p class="mt-4 text-xs text-slate-400">Response is generic for security. Demo preview links are shown only when enabled.</p>
+</section>
+{% endblock %}

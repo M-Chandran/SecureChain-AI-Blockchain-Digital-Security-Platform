@@ -1,0 +1,16 @@
+# Flask and extensions
+Flask==3.1.1
+Werkzeug==3.1.3
+
+# Security
+bcrypt==4.2.0
+cryptography==44.0.1
+
+# QR Code generation
+segno==1.6.6
+
+# PDF generation
+reportlab==4.4.0
+
+# WSGI server
+gunicorn==23.0.0
